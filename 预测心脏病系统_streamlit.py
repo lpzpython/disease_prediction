@@ -157,7 +157,6 @@ def render_prediction(model):
             "trestbps": "静息血压（mm Hg）",
             "chol": "血清胆固醇（mg/dl）",
             "fbs": "空腹血糖 > 120 mg/dl（0=否，1=是）",
-            "restecg": "静息心电图结果（0~2）",
             "thalach": "最大心率",
             "exang": "运动诱发心绞痛（0=否，1=是）",
             "thal": "地中海贫血类型（0=正常，1=固定缺陷，2=可逆缺陷）"
