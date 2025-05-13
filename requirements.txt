@@ -4,5 +4,4 @@ streamlit
 scikit-learn
 matplotlib
 seaborn
-os
 json
