@@ -16,12 +16,58 @@ st.set_page_config(page_title="心脏病预测", layout="wide")
 # 样式设计
 sns.set_style("whitegrid")
 
+def set_background_image(image_path='background.jpg'):
+    """
+    设置页面背景图为本地图片
+    :param image_path: 图片路径（相对于脚本文件）
+    """
+    import base64
+
+    with open(image_path, "rb") as f:
+        encoded_str = base64.b64encode(f.read()).decode()
+
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url(data:image/jpg;base64,{encoded_str});
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+# 确保 users.json 文件存在
+def ensure_users_file_exists():
+    if not os.path.exists('users.json'):
+        with open('users.json', 'w') as f:
+            json.dump({}, f)
+
+def login_user(username, password):
+    ensure_users_file_exists()
+    with open('users.json', 'r') as f:
+        users = json.load(f)
+    return users.get(username) == password
+
+def register_user(username, password):
+    ensure_users_file_exists()
+    with open('users.json', 'r') as f:
+        users = json.load(f)
+    if username in users:
+        return False
+    users[username] = password
+    with open('users.json', 'w') as f:
+        json.dump(users, f)
+    return True
+
 # 加载数据
 @st.cache_data
 def load_and_clean_data():
     df = pd.read_excel('heart_0513.xlsx')
     rows_with_nan = df[df.isnull().any(axis=1)]
-   # st.write(f"含有空值的数据条数: {len(rows_with_nan)}")
     df_cleaned = df.dropna()
 
     def remove_outliers(df):
@@ -37,8 +83,7 @@ def load_and_clean_data():
 # 训练模型
 @st.cache_resource
 def train_model(df):
-    X = df[['age', 'sex', 'trestbps', 'chol', 'fbs', 'thalach',
-            'exang', 'thal']]
+    X = df[['age', 'sex', 'trestbps', 'chol', 'fbs', 'thalach', 'exang', 'thal']]
     y = df['target']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -56,37 +101,8 @@ def train_model(df):
     y_pred = best_rf.predict(X_test)
     report = classification_report(y_test, y_pred, output_dict=True)
 
-    # 保存模型
-   # model_path = 'random_forest_model.joblib'
-   # joblib.dump(best_rf, model_path)
     return best_rf, report
 
-# 用户登录管理
-def login_user(username, password):
-    if not os.path.exists('users.json'):
-        with open('users.json', 'w') as f:
-            json.dump({}, f)
-    with open('users.json', 'r') as f:
-        users = json.load(f)
-    return users.get(username) == password
-
-def register_user(username, password):
-    with open('users.json', 'r') as f:
-        users = json.load(f)
-    if username in users:
-        return False
-    users[username] = password
-    with open('users.json', 'w') as f:
-        json.dump(users, f)
-    return True
-
-# 侧边栏导航
-def sidebar_navigation():
-    st.sidebar.title("导航")
-    selection = st.sidebar.radio("选择页面", ["登录与注册", "数据分析与可视化", "心脏病预测"])
-    return selection
-
-# 页面部分
 def render_login_register():
     st.title("🔐 登录 / 注册")
 
@@ -102,7 +118,6 @@ def render_login_register():
                 st.success("登录成功！")
             else:
                 st.error("用户名或密码错误")
-
     elif option == "注册":
         st.subheader("创建新账户")
         new_username = st.text_input("新用户名")
@@ -112,6 +127,11 @@ def render_login_register():
                 st.success("注册成功！请返回登录页登录。")
             else:
                 st.warning("用户名已存在，请换一个。")
+
+def sidebar_navigation():
+    st.sidebar.title("导航")
+    selection = st.sidebar.radio("选择页面", ["登录与注册", "数据分析与可视化", "心脏病预测"])
+    return selection
 
 def render_visualizations(df):
     st.title("📊 数据分析与可视化")
@@ -178,32 +198,6 @@ def render_prediction(model):
         proba = model.predict_proba(input_df)[0][1]
         st.success(f"预测患心脏病的概率为：**{proba * 100:.2f}%**")
 
-
-def set_background_image(image_path='background.jpg'):
-    """
-    设置页面背景图为本地图片
-    :param image_path: 图片路径（相对于脚本文件）
-    """
-    import base64
-
-    with open(image_path, "rb") as f:
-        encoded_str = base64.b64encode(f.read()).decode()
-
-    st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background-image: url(data:image/jpg;base64,{encoded_str});
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-# 主函数逻辑
 def main():
     set_background_image('background.jpg')  # 设置背景图
 
