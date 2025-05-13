@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -12,6 +6,9 @@ import seaborn as sns
 import joblib
 import os
 import json
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
 
 # 页面配置
 st.set_page_config(page_title="心脏病的预测", layout="wide")
@@ -21,13 +18,48 @@ sns.set_style("whitegrid")
 
 # 加载数据
 @st.cache_data
-def load_data():
+def load_and_clean_data():
     df = pd.read_excel('heart_0513.xlsx')
-    return df
+    rows_with_nan = df[df.isnull().any(axis=1)]
+    st.write(f"含有空值的数据条数: {len(rows_with_nan)}")
+    df_cleaned = df.dropna()
 
-# 加载模型
-def load_model():
-    return joblib.load('random_forest_model.joblib')
+    def remove_outliers(df):
+        Q1 = df.quantile(0.25)
+        Q3 = df.quantile(0.75)
+        IQR = Q3 - Q1
+        df_no_outliers = df[~((df < (Q1 - 1.5 * IQR)) | (df > (Q3 + 1.5 * IQR))).any(axis=1)]
+        return df_no_outliers
+
+    df_final = remove_outliers(df_cleaned)
+    return df_final
+
+# 训练模型
+@st.cache_resource
+def train_model(df):
+    X = df[['age', 'sex', 'trestbps', 'chol', 'fbs', 'thalach',
+            'exang', 'thal']]
+    y = df['target']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    param_grid = {
+        'n_estimators': [100, 200, 50],
+        'max_depth': [None, 10, 20],
+        'min_samples_split': [2, 5, 10]
+    }
+    rf = RandomForestClassifier(random_state=42)
+    grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5, n_jobs=-1, verbose=2)
+    grid_search.fit(X_train, y_train)
+    best_rf = grid_search.best_estimator_
+
+    # 预测并评估模型
+    y_pred = best_rf.predict(X_test)
+    report = classification_report(y_test, y_pred, output_dict=True)
+
+    # 保存模型
+   # model_path = 'random_forest_model.joblib'
+   # joblib.dump(best_rf, model_path)
+    return best_rf, report
 
 # 用户登录管理
 def login_user(username, password):
@@ -110,7 +142,7 @@ def render_visualizations(df):
     sns.heatmap(corr, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5, ax=ax)
     st.pyplot(fig)
 
-def render_prediction(df, model):
+def render_prediction(model):
     st.title("🫀 心脏病概率预测")
 
     input_data = {}
@@ -144,8 +176,8 @@ def render_prediction(df, model):
 
 # 主函数逻辑
 def main():
-    df = load_data()
-    model = load_model()
+    df = load_and_clean_data()
+    model, _ = train_model(df)
 
     if 'logged_in' not in st.session_state:
         st.session_state['logged_in'] = False
@@ -160,10 +192,9 @@ def main():
         if page == "数据分析与可视化":
             render_visualizations(df)
         elif page == "心脏病预测":
-            render_prediction(df, model)
+            render_prediction(model)
     else:
         st.warning("请先登录以访问此页面。")
 
 if __name__ == "__main__":
     main()
-
