@@ -22,7 +22,7 @@ sns.set_style("whitegrid")
 # 加载数据
 @st.cache_data
 def load_data():
-    df = pd.read_csv('heart_0513.xlsx')
+    df = pd.read_excel('heart_0513.xlsx')
     return df
 
 # 加载模型
