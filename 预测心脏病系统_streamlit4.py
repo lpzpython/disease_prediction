@@ -36,7 +36,7 @@ def set_background_image(image_path='background.jpg'):
             background-size: contain; /* 调整背景图片大小 */
             background-repeat: no-repeat;
             background-attachment: fixed;
-            background-position: center;
+            background-position: 70% center;
         }}
 
         /* 设置所有输入框的背景颜色为白色 */
