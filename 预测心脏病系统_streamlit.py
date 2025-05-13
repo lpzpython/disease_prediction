@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 
 # 页面配置
-st.set_page_config(page_title="心脏病的预测", layout="wide")
+st.set_page_config(page_title="心脏病预测", layout="wide")
 
 # 样式设计
 sns.set_style("whitegrid")
