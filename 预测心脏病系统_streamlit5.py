@@ -213,9 +213,8 @@ def sidebar_navigation():
     return selection
 import matplotlib.font_manager as fm
 
-# 确保matplotlib可以显示中文
-plt.rcParams['font.sans-serif'] = ['SimHei']  # 使用黑体作为默认字体以支持中文
-plt.rcParams['axes.unicode_minus'] = False    # 解决负号'-'显示为方块的问题
+plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS', 'SimHei']
+plt.rcParams['axes.unicode_minus'] = False
 
 def render_visualizations(df):
     st.title("📊 数据分析与可视化")
