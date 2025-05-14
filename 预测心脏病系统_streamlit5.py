@@ -209,8 +209,47 @@ def render_profile():
 
 def sidebar_navigation():
     st.sidebar.title("导航")
-    selection = st.sidebar.radio("选择页面", ["登录与注册", "数据分析与可视化", "心脏病预测", "个人信息"])
+    
+    # 定义页面选项和对应的标签
+    pages = {
+        "登录与注册": "🔐 登录 / 注册",
+        "数据分析与可视化": "📊 数据分析与可视化",
+        "心脏病预测": "🫀 心脏病概率预测",
+        "个人信息": "🧾 个人资料"
+    }
+
+    # 创建一个HTML样式字符串，用于定义方块样式
+    style = """
+    <style>
+        .nav-block { 
+            background-color: #d6eaff; /* 浅蓝色 */
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #003366;
+            cursor: pointer;
+        }
+        .nav-block:hover {
+            background-color: #a3d0ff;
+        }
+    </style>
+    """
+    st.markdown(style, unsafe_allow_html=True)
+
+    # 动态生成导航方块
+    for page_key, page_label in pages.items():
+        block_html = f'<div class="nav-block" onclick="location.href=\'?page={page_key}\'">{page_label}</div>'
+        st.markdown(block_html, unsafe_allow_html=True)
+
+    # 根据URL参数选择页面
+    selection = st.experimental_get_query_params().get("page", ["登录与注册"])[0]
     return selection
+
+
+
 import matplotlib.pyplot as plt
 import streamlit as st
 import matplotlib.pyplot as plt
@@ -331,29 +370,33 @@ def render_prediction(model):
         input_df = pd.DataFrame([input_data])
         proba = model.predict_proba(input_df)[0][1]
         st.success(f"预测患心脏病的概率为：**{proba * 100:.2f}%**")
-        
-def main():
+  def main():
     set_background_image('background.jpg')
 
     df = load_and_clean_data()
     model, _ = train_model(df)
+    
+    # 初始化登录状态
     if 'logged_in' not in st.session_state:
         st.session_state['logged_in'] = False
 
+    # 获取页面选择
     page = sidebar_navigation()
 
+    # 根据页面选择显示相应的内容
     if page == "登录与注册":
         render_login_register()
-    elif st.session_state['logged_in']:
-        if page == "数据分析与可视化":
-            render_visualizations(df)
-        elif page == "心脏病预测":
-            render_prediction(model)
-        elif page == "个人信息":
-            render_profile()
+    elif page == "数据分析与可视化" and st.session_state['logged_in']:
+        render_visualizations(df)
+    elif page == "心脏病预测" and st.session_state['logged_in']:
+        render_prediction(model)
+    elif page == "个人信息" and st.session_state['logged_in']:
+        render_profile()
     else:
-        st.warning("请先登录以访问此页面。")
-
+        if st.session_state['logged_in'] is False and page != "登录与注册":
+            st.warning("请先登录以访问此页面。")
+        else:
+            st.warning("您没有权限访问所请求的页面。")
 
 if __name__ == "__main__":
     main()
