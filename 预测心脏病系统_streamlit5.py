@@ -211,10 +211,14 @@ def sidebar_navigation():
     st.sidebar.title("导航")
     selection = st.sidebar.radio("选择页面", ["登录与注册", "数据分析与可视化", "心脏病预测", "个人信息"])
     return selection
-import matplotlib.font_manager as fm
+from matplotlib.font_manager import FontProperties
+import matplotlib.pyplot as plt
 
-plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS', 'SimHei']
-plt.rcParams['axes.unicode_minus'] = False
+# 假设 SimHei.ttf 在你的项目根目录下
+font = FontProperties(fname="CB54D0C3C3570CC1D29BD1FB50C53571.TTF")  # 设置字体路径
+
+plt.rcParams['font.family'] = font.get_name()
+plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 
 def render_visualizations(df):
     st.title("📊 数据分析与可视化")
