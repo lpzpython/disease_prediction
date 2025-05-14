@@ -215,35 +215,69 @@ def sidebar_navigation():
 def render_visualizations(df):
     st.title("📊 数据分析与可视化")
 
+    # 变量映射：英文列名 → 简洁中文名
+    var_name_map = {
+        'age': '年龄',
+        'trestbps': '静息血压',
+        'chol': '胆固醇',
+        'thalach': '最大心率',
+        'target': '是否患病'
+    }
+
     continuous_vars = ['age', 'trestbps', 'chol', 'thalach']
     categorical_vars = [col for col in df.columns if col not in continuous_vars and col != 'target']
 
-    st.subheader("a) 连续型变量的直方图")
+    # 自动添加中文名称
+    def get_chinese_name(var):
+        return var_name_map.get(var, var)
+
+    # =====================
+    # a) 连续型变量直方图
+    # =====================
+    st.subheader("a) 连续型变量分布直方图")
     cols = st.columns(2)
     for i, var in enumerate(continuous_vars):
         fig, ax = plt.subplots(figsize=(5, 3))
         sns.histplot(df[var], kde=True, ax=ax, color='skyblue')
+        ax.set_title(get_chinese_name(var))
         cols[i % 2].pyplot(fig)
 
+    # =====================
+    # b) 分类变量饼图
+    # =====================
     st.subheader("b) 分类变量分布饼图")
     cols = st.columns(2)
+    pie_colors = ['skyblue', 'lightgreen', 'salmon', 'gold', 'violet', 'orange', 'cyan']
+
     for i, var in enumerate(categorical_vars):
         fig, ax = plt.subplots(figsize=(5, 3))
-        df[var].value_counts().plot.pie(autopct='%1.1f%%', ax=ax, colors=sns.color_palette("pastel"))
-        ax.set_ylabel('')
+        value_counts = df[var].value_counts()
+        ax.pie(value_counts, labels=value_counts.index, autopct='%1.1f%%', colors=pie_colors[:len(value_counts)])
+        ax.set_title(get_chinese_name(var))  # 添加变量名标题
+        ax.axis('equal')  # 让饼图为正圆
         cols[i % 2].pyplot(fig)
 
-    st.subheader("c) 不同目标下的箱型图")
+    # =====================
+    # c) 不同目标下的箱型图
+    # =====================
+    st.subheader("c) 是否患病 vs 各指标箱型图")
     cols = st.columns(2)
     for i, var in enumerate(continuous_vars):
         fig, ax = plt.subplots(figsize=(6, 3))
         sns.boxplot(x='target', y=var, data=df, ax=ax, palette="Set2")
+        ax.set_xlabel('是否患病')
+        ax.set_ylabel(get_chinese_name(var))
         cols[i % 2].pyplot(fig)
 
-    st.subheader("d) 变量相关系数图")
-    corr = df.corr(numeric_only=True)
-    fig, ax = plt.subplots(figsize=(10, 8))
-    sns.heatmap(corr, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5, ax=ax)
+    # =====================
+    # d) 相关系数图（仅连续变量）
+    # =====================
+    st.subheader("d) 连续变量相关系数热力图")
+    corr_df = df[continuous_vars].corr(numeric_only=True)
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.heatmap(corr_df, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5, ax=ax,
+                xticklabels=[get_chinese_name(col) for col in continuous_vars],
+                yticklabels=[get_chinese_name(col) for col in continuous_vars])
     st.pyplot(fig)
 
 def render_prediction(model):
