@@ -214,7 +214,7 @@ def sidebar_navigation():
     st.markdown("""
     <style>
         .nav-title {
-            background-color: #ffffff; /* 设置为白色或任何你希望的颜色 */
+            background-color: #d6eaff; /* 设置为白色或任何你希望的颜色 */
             padding: 10px;
             border: 2px solid #d6eaff; /* 使用边框来框起文字 */
             margin-bottom: 20px;
