@@ -217,7 +217,7 @@ def sidebar_navigation():
             padding: 10px;
             border: 2px solid #d6eaff; /* 使用边框来框起文字 */
             margin-bottom: 20px;
-            text-align: center;
+            text-align: left;
             font-size: 18px;
             font-weight: bold;
             color: #333333;
