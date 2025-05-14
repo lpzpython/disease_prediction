@@ -206,8 +206,47 @@ def render_profile():
                 json.dump(users, f)
             st.success("密码修改成功！")
 
+import streamlit as st
+
 def sidebar_navigation():
-    st.sidebar.title("导航")
+    # 自定义CSS样式
+    st.markdown("""
+    <style>
+        .nav-title {
+            background-color: #ffffff; /* 设置为白色或任何你希望的颜色 */
+            padding: 10px;
+            border: 2px solid #d6eaff; /* 使用边框来框起文字 */
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333333;
+            display: block; /* 让div像block元素一样工作，以便于居中 */
+            margin-left: auto;
+            margin-right: auto;
+            width: fit-content; /* 根据内容自动调整宽度 */
+        }
+        .nav-button {
+            background-color: #d6eaff; /* 浅蓝色 */
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+            text-align: left; /* 改成left让图标和文本左对齐 */
+            font-weight: bold;
+            color: #003366;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%; /* 确保按钮宽度占满容器 */
+            box-sizing: border-box; /* 包括padding和border在内的宽度计算 */
+        }
+        .nav-button:hover {
+            background-color: #a3d0ff;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # 渲染导航标题
+    st.sidebar.markdown('<div class="nav-title">导航</div>', unsafe_allow_html=True)
 
     # 页面选项和图标
     pages = {
@@ -216,26 +255,6 @@ def sidebar_navigation():
         "心脏病预测": "🫀 心脏病概率预测",
         "个人信息": "🧾 个人资料"
     }
-
-    # 自定义CSS样式
-    st.markdown("""
-    <style>
-        .nav-button {
-            background-color: #d6eaff; /* 浅蓝色 */
-            padding: 12px;
-            border-radius: 8px;
-            margin: 8px 0;
-            text-align: center;
-            font-weight: bold;
-            color: #003366;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        .nav-button:hover {
-            background-color: #a3d0ff;
-        }
-    </style>
-    """, unsafe_allow_html=True)
 
     # 渲染每个页面按钮
     for page_key, label in pages.items():
@@ -246,7 +265,7 @@ def sidebar_navigation():
     if "page" not in st.session_state:
         st.session_state["page"] = "登录与注册"
 
-    return st.session_state["page"]
+    return st.session_state.get("page", "登录与注册")
 
 
 import matplotlib.pyplot as plt
