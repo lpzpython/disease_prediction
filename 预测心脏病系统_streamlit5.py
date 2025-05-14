@@ -281,7 +281,7 @@ def main():
     set_background_image('background.jpg')
 
     df = load_and_clean_data()
-
+    model, _ = train_model(df)
     if 'logged_in' not in st.session_state:
         st.session_state['logged_in'] = False
 
