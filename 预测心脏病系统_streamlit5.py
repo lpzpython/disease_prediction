@@ -301,7 +301,13 @@ def render_visualizations(df):
                 xticklabels=continuous_vars,
                 yticklabels=continuous_vars)
     st.pyplot(fig)
-
+    # 在相关系数图下方添加匹配关系
+    st.markdown("#### 字段说明")
+    st.markdown("| 英文字段 | 中文含义 |")
+    st.markdown("| --- | --- |")
+    for var in continuous_vars:
+        st.markdown(f"| `{var}` | {get_chinese_name(var)} |")
+        
 def render_prediction(model):
     st.title("🫀 心脏病概率预测")
 
