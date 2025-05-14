@@ -211,6 +211,11 @@ def sidebar_navigation():
     st.sidebar.title("导航")
     selection = st.sidebar.radio("选择页面", ["登录与注册", "数据分析与可视化", "心脏病预测", "个人信息"])
     return selection
+import matplotlib.font_manager as fm
+
+# 确保matplotlib可以显示中文
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 使用黑体作为默认字体以支持中文
+plt.rcParams['axes.unicode_minus'] = False    # 解决负号'-'显示为方块的问题
 
 def render_visualizations(df):
     st.title("📊 数据分析与可视化")
@@ -225,7 +230,7 @@ def render_visualizations(df):
     }
 
     continuous_vars = ['age', 'trestbps', 'chol', 'thalach']
-    categorical_vars = [col for col in df.columns if col not in continuous_vars and col != 'target']
+    categorical_vars = [col for col in df.columns if col not in continuous_vars and col != 'target' and col != 'oldpeak']
 
     # 自动添加中文名称
     def get_chinese_name(var):
@@ -250,9 +255,11 @@ def render_visualizations(df):
     pie_colors = ['skyblue', 'lightgreen', 'salmon', 'gold', 'violet', 'orange', 'cyan']
 
     for i, var in enumerate(categorical_vars):
+        if var == 'oldpeak':
+            continue  # 跳过 oldpeak 的处理
         fig, ax = plt.subplots(figsize=(5, 3))
         value_counts = df[var].value_counts()
-        ax.pie(value_counts, labels=value_counts.index, autopct='%1.1f%%', colors=pie_colors[:len(value_counts)])
+        ax.pie(value_counts, labels=[f"{idx} ({count})" for idx, count in zip(value_counts.index, value_counts)], autopct='%1.1f%%', colors=pie_colors[:len(value_counts)])
         ax.set_title(get_chinese_name(var))  # 添加变量名标题
         ax.axis('equal')  # 让饼图为正圆
         cols[i % 2].pyplot(fig)
