@@ -219,47 +219,52 @@ font = FontProperties(fname="CB54D0C3C3570CC1D29BD1FB50C53571.TTF")  # 设置字
 
 plt.rcParams['font.family'] = font.get_name()
 plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
+import streamlit as st
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+
 def render_visualizations(df):
     st.title("📊 数据分析与可视化")
 
     # =====================
-    # 字段说明表（英文 → 中文）
+    # 字段映射：英文列名 → 简洁中文名（带详细描述）
     # =====================
     var_name_map = {
-        'age': '年龄',
-        'trestbps': '静息血压',
-        'chol': '胆固醇',
+        'age': '年龄（岁）',
+        'sex': '性别（0=女，1=男）',
+        'trestbps': '静息血压（mm Hg）',
+        'chol': '血清胆固醇（mg/dl）',
+        'fbs': '空腹血糖 > 120 mg/dl（0=否，1=是）',
         'thalach': '最大心率',
+        'exang': '运动诱发心绞痛（0=否，1=是）',
+        'thal': '地中海贫血类型（0=正常，1=固定缺陷，2=可逆缺陷）',
         'target': '是否患病'
     }
 
-    st.markdown("📌 **字段说明（英文 → 中文）**")
-    for en, zh in var_name_map.items():
-        st.markdown(f"- `{en}` → {zh}")
-
-    st.markdown("---")
-
-    # =====================
-    # 变量分类
-    # =====================
     continuous_vars = ['age', 'trestbps', 'chol', 'thalach']
-    categorical_vars = [col for col in df.columns if col not in continuous_vars and col != 'target' and col != 'oldpeak']
+    categorical_vars = ['sex', 'fbs', 'exang', 'thal']  # 只保留指定的分类变量
+
+    # 自动添加中文名称
+    def get_chinese_name(var):
+        return var_name_map.get(var, var)
 
     # =====================
     # a) 连续型变量直方图
     # =====================
-    st.subheader("a) Continuous Variables - Histogram")
+    st.subheader("a) 连续型变量分布直方图")
     cols = st.columns(2)
     for i, var in enumerate(continuous_vars):
         fig, ax = plt.subplots(figsize=(5, 3))
         sns.histplot(df[var], kde=True, ax=ax, color='skyblue')
         ax.set_title(var)
         cols[i % 2].pyplot(fig)
+        cols[i % 2].caption(f"`{var}` → {get_chinese_name(var)}")  # 添加中文注释
 
     # =====================
-    # b) 分类变量饼图（跳过 oldpeak）
+    # b) 分类变量饼图（只保留 sex, fbs, exang, thal）
     # =====================
-    st.subheader("b) Categorical Variables - Pie Charts")
+    st.subheader("b) 分类变量分布饼图")
     cols = st.columns(2)
     pie_colors = ['skyblue', 'lightgreen', 'salmon', 'gold', 'violet', 'orange', 'cyan']
 
@@ -268,14 +273,15 @@ def render_visualizations(df):
         value_counts = df[var].value_counts()
         labels = [f"{idx} ({count})" for idx, count in zip(value_counts.index, value_counts)]
         ax.pie(value_counts, labels=labels, autopct='%1.1f%%', colors=pie_colors[:len(value_counts)])
-        ax.set_title(var)  # 继续用英文标题
+        ax.set_title(var)
         ax.axis('equal')
         cols[i % 2].pyplot(fig)
+        cols[i % 2].caption(f"`{var}` → {get_chinese_name(var)}")  # 添加中文注释
 
     # =====================
-    # c) 箱型图
+    # c) 不同目标下的箱型图
     # =====================
-    st.subheader("c) Boxplots by Target (0: No Disease, 1: Disease)")
+    st.subheader("c) 是否患病 vs 各指标箱型图")
     cols = st.columns(2)
     for i, var in enumerate(continuous_vars):
         fig, ax = plt.subplots(figsize=(6, 3))
@@ -283,11 +289,12 @@ def render_visualizations(df):
         ax.set_xlabel('target')
         ax.set_ylabel(var)
         cols[i % 2].pyplot(fig)
+        cols[i % 2].caption(f"`{var}` → {get_chinese_name(var)}")  # 添加中文注释
 
     # =====================
-    # d) 相关系数热力图（仅连续变量）
+    # d) 相关系数图（仅连续变量）
     # =====================
-    st.subheader("d) Correlation Heatmap (Continuous Variables)")
+    st.subheader("d) 连续变量相关系数热力图")
     corr_df = df[continuous_vars].corr(numeric_only=True)
     fig, ax = plt.subplots(figsize=(8, 6))
     sns.heatmap(corr_df, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5, ax=ax,
