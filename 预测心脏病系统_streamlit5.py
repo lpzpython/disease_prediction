@@ -207,6 +207,7 @@ def render_profile():
             st.success("密码修改成功！")
 
 import streamlit as st
+import streamlit as st
 
 def sidebar_navigation():
     # 自定义CSS样式
@@ -217,14 +218,12 @@ def sidebar_navigation():
             padding: 10px;
             border: 2px solid #d6eaff; /* 使用边框来框起文字 */
             margin-bottom: 20px;
-            text-align: left;
+            text-align: left; /* 左对齐 */
             font-size: 18px;
             font-weight: bold;
             color: #333333;
-            display: block; /* 让div像block元素一样工作，以便于居中 */
-            margin-left: auto;
-            margin-right: auto;
-            width: fit-content; /* 根据内容自动调整宽度 */
+            width: 100%; /* 确保宽度占满容器 */
+            box-sizing: border-box; /* 包括padding和border在内的宽度计算 */
         }
         .nav-button {
             background-color: #d6eaff; /* 浅蓝色 */
