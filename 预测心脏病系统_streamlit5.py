@@ -293,7 +293,7 @@ def main():
         if page == "数据分析与可视化":
             render_visualizations(df)
         elif page == "心脏病预测":
-            st.title("🫀 心脏病预测模块待实现")
+            render_prediction(model)
         elif page == "个人信息":
             render_profile()
     else:
