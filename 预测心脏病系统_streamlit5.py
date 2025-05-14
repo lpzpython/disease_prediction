@@ -370,7 +370,8 @@ def render_prediction(model):
         input_df = pd.DataFrame([input_data])
         proba = model.predict_proba(input_df)[0][1]
         st.success(f"预测患心脏病的概率为：**{proba * 100:.2f}%**")
-  def main():
+
+def main():
     set_background_image('background.jpg')
 
     df = load_and_clean_data()
