@@ -453,7 +453,11 @@ def render_visualizations(df, model, X_test, y_test):
         ax.legend(loc="lower right")
         st.pyplot(fig)
     render_model_performance(X_test, y_test, model)
-
+def initialize_files():
+    ensure_users_file_exists()
+    ensure_messages_file_exists()
+    ensure_predictions_file_exists()  # 新增这一行
+    
 def ensure_predictions_file_exists():
     if not os.path.exists('predictions.json'):
         with open('predictions.json', 'w') as f:
@@ -500,7 +504,7 @@ def render_prediction(model):
                 json.dump(preds, f)
 def main():
     set_background_image('background.jpg')
-
+    initialize_files()
     df = load_and_clean_data()
     model, X_test, y_test = train_model(df)
 
