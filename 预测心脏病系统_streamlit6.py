@@ -454,8 +454,13 @@ def render_visualizations(df, model, X_test, y_test):
         st.pyplot(fig)
     render_model_performance(X_test, y_test, model)
 
+def ensure_predictions_file_exists():
+    if not os.path.exists('predictions.json'):
+        with open('predictions.json', 'w') as f:
+            json.dump({}, f)
 
 def render_prediction(model):
+    ensure_predictions_file_exists()
     st.title("🫀 心脏病概率预测")
     input_data = {}
     with st.form("prediction_form"):
