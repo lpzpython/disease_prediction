@@ -302,6 +302,10 @@ def render_login():
             st.rerun()
         else:
             st.error("用户名或密码错误")
+        # 添加跳转注册页的按钮
+    if st.button("还没有账号？立即注册", use_container_width=True):
+        st.session_state['page'] = "注册"
+        st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -332,6 +336,10 @@ def render_register():
                 st.rerun()
             else:
                 st.warning("用户名已存在，请换一个。")
+       # 添加跳转登录页的按钮
+    if st.button("已有账号？去登录", use_container_width=True):
+        st.session_state['page'] = "登录"
+        st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -832,7 +840,7 @@ def main():
         st.session_state['logged_in'] = False
 
     if 'page' not in st.session_state:
-        st.session_state['page'] = "登录与注册"  # 默认进入登录页
+        st.session_state['page'] = "登录"  # 默认进入登录页
 
     # 如果未登录，只允许访问登录/注册页
     if not st.session_state.get('logged_in', False):
