@@ -54,7 +54,7 @@ def set_background_image(image_path='background.jpg'):
         """,
         unsafe_allow_html=True
     )
-def set_background_image(image_path):
+def set_background_image1(image_path):
     """
     将指定图片设置为 Streamlit 页面的全屏背景
     """
