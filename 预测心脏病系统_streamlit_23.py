@@ -54,21 +54,25 @@ def set_background_image(image_path='background.jpg'):
         """,
         unsafe_allow_html=True
     )
-def set_background_image1(image_path):
-    with open(image_path, "rb") as image_file:
-        encoded_string = base64.b64encode(image_file.read()).decode()
-    background_style = f"""
+def set_background_image(image_path):
+    """
+    将指定图片设置为 Streamlit 页面的全屏背景
+    """
+    with open(image_path, "rb") as img_file:
+        encoded_img = base64.b64encode(img_file.read()).decode()
+
+    background_css = f"""
     <style>
         .stApp {{
-            background-image: url(data:image/jpg;base64,{encoded_string});
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
+            background-image: url(data:image/jpg;base64,{encoded_img});
+            background-size: cover;             /* 自动填充整个屏幕 */
+            background-position: center;         /* 居中显示 */
+            background-repeat: no-repeat;        /* 不重复 */
+            background-attachment: fixed;        /* 固定背景，滚动时不移动 */
         }}
     </style>
     """
-    st.markdown(background_style, unsafe_allow_html=True)
+    st.markdown(background_css, unsafe_allow_html=True)
 # 确保 users.json 文件存在
 def ensure_users_file_exists():
     if not os.path.exists('users.json'):
