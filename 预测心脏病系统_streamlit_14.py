@@ -253,7 +253,7 @@ def render_public_announcement():
 # =============================
 def render_login_register():
     st.title("🔐 登录 / 注册")
-    #option = st.selectbox("请选择操作", ["登录", "注册"])
+
     # 如果没有明确选择登录或注册，默认显示登录页
     default_option = st.session_state.get('page', '登录')
     option = st.selectbox("请选择操作", ["登录", "注册"], index=0 if default_option == "登录" else 1)
@@ -268,51 +268,31 @@ def render_login_register():
                 st.session_state['logged_in'] = True
                 st.session_state['current_user'] = username
                 st.session_state['is_admin'] = is_admin
-                st.success("登录成功！")
+                st.session_state['page'] = "数据分析与可视化"  # 👈 新增：设置默认首页
+                st.rerun()  # 👈 修改：立即刷新页面跳转
             else:
                 st.error("用户名或密码错误")
 
-
     elif option == "注册":
-
         st.subheader("创建新账户")
-
         new_username = st.text_input("新用户名")
-
         new_password = st.text_input("新密码", type="password")
-
         confirm_password = st.text_input("确认密码", type="password")
-
         gender = st.selectbox("性别", ["男", "女"])
-
         age = st.number_input("年龄", min_value=0, max_value=120, value=18)
-
         if st.button("注册"):
-
             if new_password != confirm_password:
-
                 st.error("两次输入的密码不一致！")
-
             elif len(new_password) < 6:
-
                 st.warning("密码至少需要6位字符！")
-
             else:
-
                 if register_user(new_username, new_password, gender, age):
-
                     st.success("注册成功，请登录。")
-
-                    # 设置回到登录页并刷新
-
+                    st.session_state['logged_in'] = False
                     st.session_state['page'] = "登录与注册"
-
-                    st.rerun()  # 刷新页面以展示登录表单
-
+                    st.rerun()  # ✅ 已有：刷新页面回登录页
                 else:
-
                     st.warning("用户名已存在，请换一个。")
-
 #新增留言管理功能
 def ensure_messages_file_exists():
     if not os.path.exists('messages.json'):
@@ -464,6 +444,13 @@ def render_profile():
                 st.rerun()  # 刷新页面以更新UI
     else:
         st.markdown("**尚未有预测记录。**")
+    st.markdown("---")
+    st.subheader("🚪 退出登录")
+    if st.button("退出当前账号"):
+        # 清除登录状态
+        st.session_state['logged_in'] = False
+        st.session_state['page'] = "登录与注册"  # 回到登录页
+        st.rerun()
 import streamlit as st
 import streamlit as st
 
