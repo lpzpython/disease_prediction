@@ -310,47 +310,7 @@ def render_register():
     
 def render_login_register():
     st.info("请使用顶部导航栏选择【登录】或【注册】")
- #   st.title("🔐 登录 / 注册")
-
-    # 如果没有明确选择登录或注册，默认显示登录页
-  #  default_option = st.session_state.get('page', '登录')
-   # option = st.selectbox("请选择操作", ["登录", "注册"], index=0 if default_option == "登录" else 1)
-
-    #if option == "登录":
-     #   st.subheader("请登录")
-      #  username = st.text_input("用户名")
-       # password = st.text_input("密码", type="password")
-        #if st.button("登录"):
-         #   success, is_admin = login_user(username, password)
-          #  if success:
-           #     st.session_state['logged_in'] = True
-            #    st.session_state['current_user'] = username
-             #   st.session_state['is_admin'] = is_admin
-              #  st.session_state['page'] = "数据分析与可视化"  # 👈 新增：设置默认首页
-               # st.rerun()  # 👈 修改：立即刷新页面跳转
-            #else:
-             #   st.error("用户名或密码错误")
-
- #   elif option == "注册":
-  #      st.subheader("创建新账户")
-   #     new_username = st.text_input("新用户名")
-    #    new_password = st.text_input("新密码", type="password")
-     #   confirm_password = st.text_input("确认密码", type="password")
-      #  gender = st.selectbox("性别", ["男", "女"])
-       # age = st.number_input("年龄", min_value=0, max_value=120, value=18)
-        #if st.button("注册"):
-         #   if new_password != confirm_password:
-          #      st.error("两次输入的密码不一致！")
-           # elif len(new_password) < 6:
-            #    st.warning("密码至少需要6位字符！")
-            #else:
-             #   if register_user(new_username, new_password, gender, age):
-              #      st.success("注册成功，请登录。")
-               #     st.session_state['logged_in'] = False
-                #    st.session_state['page'] = "登录与注册"
-                 #   st.rerun()  # ✅ 已有：刷新页面回登录页
-                #else:
-                 #   st.warning("用户名已存在，请换一个。")
+ 
 #新增留言管理功能
 def ensure_messages_file_exists():
     if not os.path.exists('messages.json'):
@@ -830,7 +790,7 @@ def main():
     if not st.session_state.get('logged_in', False):
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            st.markdown("<h2 style='text-align:center;'>登录</h2>", unsafe_allow_html=True)
+            st.markdown("<h2 style='text-align:center;'>登录与注册</h2>", unsafe_allow_html=True)
             login_or_register = st.tabs(["登录", "注册"])
 
             with login_or_register[0]:
