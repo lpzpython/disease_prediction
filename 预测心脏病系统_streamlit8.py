@@ -316,8 +316,7 @@ def sidebar_navigation():
         #"心脏病预测": "🫀 心脏病概率预测",
         "个人信息": "🧾 个人资料"
     }
-    if st.session_state.get("is_admin", False):
-        pages["管理员面板"] = "🔒 管理员面板"
+    is_admin = st.session_state.get("is_admin", False)  # 安全默认值
     if not is_admin:
         pages["心脏病预测"] = "🫀 心脏病概率预测"
     else:
