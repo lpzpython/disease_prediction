@@ -268,17 +268,19 @@ def render_login():
     st.markdown("""
     <style>
         .login-container {
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: #e0f7ff; /* 浅蓝色背景 */
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             max-width: 400px;
             margin: auto;
+            text-align: center;
         }
         .login-container input[type="text"], 
         .login-container input[type="password"] {
-            width: 100%;
-            max-width: 100px; /* 控制输入框最大宽度 */
+            width: calc(100% - 20px); /* 自动计算宽度，留出内边距 */
+            max-width: 300px;
+            margin-bottom: 10px;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -301,17 +303,19 @@ def render_register():
     st.markdown("""
     <style>
         .register-container {
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: #e0f7ff; /* 浅蓝色背景 */
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             max-width: 400px;
             margin: auto;
+            text-align: center;
         }
         .register-container input[type="text"], 
         .register-container input[type="password"] {
-            width: 100%;
-            max-width: 100px;
+            width: calc(100% - 20px); /* 自动计算宽度，留出内边距 */
+            max-width: 300px;
+            margin-bottom: 10px;
         }
     </style>
     """, unsafe_allow_html=True)
