@@ -22,7 +22,7 @@ def set_background_image(image_path='background.jpg'):
     设置页面背景图为本地图片，并调整其大小和位置
     :param image_path: 图片路径（相对于脚本文件）
     """
-    import base64
+    import 05
 
     with open(image_path, "rb") as f:
         encoded_str = base64.b64encode(f.read()).decode()
@@ -95,7 +95,7 @@ def register_user(username, password, gender, age):
 # 加载数据
 @st.cache_data
 def load_and_clean_data():
-    df = pd.read_excel('heart_0513.xlsx')
+    df = pd.read_excel('heart_0531.xlsx')
     rows_with_nan = df[df.isnull().any(axis=1)]
     df_cleaned = df.dropna()
 
