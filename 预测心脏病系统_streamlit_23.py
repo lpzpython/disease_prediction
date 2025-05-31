@@ -830,7 +830,7 @@ def main():
     if not st.session_state.get('logged_in', False):
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            st.markdown("<h2 style='text-align:center;'>🔐 用户登录</h2>", unsafe_allow_html=True)
+            st.markdown("<h2 style='text-align:center;'>登录</h2>", unsafe_allow_html=True)
             login_or_register = st.tabs(["登录", "注册"])
 
             with login_or_register[0]:
