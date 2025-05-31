@@ -189,7 +189,7 @@ def render_admin_announcement():
             }
             save_announcement(announcement_id, data)
             st.success("公告已发布！")
-            st.experimental_rerun()
+            st.rerun()
 
     # 搜索公告
     search_term = st.text_input("🔍 输入关键词搜索公告标题")
