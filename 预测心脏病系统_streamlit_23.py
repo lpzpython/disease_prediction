@@ -266,23 +266,16 @@ def render_public_announcement():
 def render_login():
     # 使用 HTML 容器包裹登录表单
     st.markdown("""
-    <style>
-        .login-container {
-            background-color: #e0f7ff; /* 浅蓝色背景 */
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            max-width: 400px;
-            margin: auto;
-            text-align: center;
-        }
-        .login-container input[type="text"], 
-        .login-container input[type="password"] {
-            width: calc(100% - 20px); /* 自动计算宽度，留出内边距 */
-            max-width: 300px;
-            margin-bottom: 10px;
-        }
-    </style>
+    <div style="background-color:#e0f7ff;padding:20px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.2);max-width:400px;margin:auto;text-align:center;">
+        <h3>🔐 用户登录</h3>
+        <form>
+            <input type="text" placeholder="用户名" style="width:calc(100% - 20px);max-width:300px;margin-bottom:10px;padding:5px;">
+            <br/>
+            <input type="password" placeholder="密码" style="width:calc(100% - 20px);max-width:300px;margin-bottom:10px;padding:5px;">
+            <br/>
+            <button style="padding:10px 20px;background-color:#007BFF;color:white;border:none;border-radius:5px;cursor:pointer;">登录</button>
+        </form>
+    </div>
     """, unsafe_allow_html=True)
     username = st.text_input("用户名")
     password = st.text_input("密码", type="password")
@@ -301,23 +294,18 @@ def render_login():
 
 def render_register():
     st.markdown("""
-    <style>
-        .register-container {
-            background-color: #e0f7ff; /* 浅蓝色背景 */
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            max-width: 400px;
-            margin: auto;
-            text-align: center;
-        }
-        .register-container input[type="text"], 
-        .register-container input[type="password"] {
-            width: calc(100% - 20px); /* 自动计算宽度，留出内边距 */
-            max-width: 300px;
-            margin-bottom: 10px;
-        }
-    </style>
+    <div style="background-color:#e0f7ff;padding:20px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.2);max-width:400px;margin:auto;text-align:center;">
+        <h3>📝 用户注册</h3>
+        <form>
+            <input type="text" placeholder="新用户名" style="width:calc(100% - 20px);max-width:300px;margin-bottom:10px;padding:5px;">
+            <br/>
+            <input type="password" placeholder="新密码" style="width:calc(100% - 20px);max-width:300px;margin-bottom:10px;padding:5px;">
+            <br/>
+            <input type="password" placeholder="确认密码" style="width:calc(100% - 20px);max-width:300px;margin-bottom:10px;padding:5px;">
+            <br/>
+            <button style="padding:10px 20px;background-color:#007BFF;color:white;border:none;border-radius:5px;cursor:pointer;">注册</button>
+        </form>
+    </div>
     """, unsafe_allow_html=True)
     new_username = st.text_input("新用户名")
     new_password = st.text_input("新密码", type="password")
