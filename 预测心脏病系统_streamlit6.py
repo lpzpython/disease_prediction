@@ -188,7 +188,7 @@ def save_message(username, message):
 #创建管理员页面
 def render_admin_page():
     st.title("🔐 管理员面板")
-
+    preds = get_predictions()
     with open('users.json', 'r') as f:
         users = json.load(f)
 
@@ -207,6 +207,18 @@ def render_admin_page():
             if st.button(f"保存留言给 {username}", key=f"save_{username}"):
                 save_message(username, new_msg)
                 st.success("留言已保存！")
+
+def get_predictions():
+    ensure_predictions_file_exists()  # 确保文件存在
+    try:
+        with open('predictions.json', 'r') as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        # 如果文件损坏或为空，重置为 {}
+        print("[警告] predictions.json 文件格式错误，正在重置")
+        with open('predictions.json', 'w') as f:
+            json.dump({}, f)
+        return {}
 
 # 个人资料页面
 # =============================
@@ -453,15 +465,15 @@ def render_visualizations(df, model, X_test, y_test):
         ax.legend(loc="lower right")
         st.pyplot(fig)
     render_model_performance(X_test, y_test, model)
-def initialize_files():
-    ensure_users_file_exists()
-    ensure_messages_file_exists()
-    ensure_predictions_file_exists()  # 新增这一行
-    
+
 def ensure_predictions_file_exists():
     if not os.path.exists('predictions.json'):
         with open('predictions.json', 'w') as f:
             json.dump({}, f)
+def initialize_files():
+    ensure_users_file_exists()
+    ensure_messages_file_exists()
+    ensure_predictions_file_exists()  # 新增这一行
 
 def render_prediction(model):
     ensure_predictions_file_exists()
