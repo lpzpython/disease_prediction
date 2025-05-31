@@ -268,13 +268,12 @@ def render_public_announcement():
 # =============================
 #注册登录
 def render_login():
-   st.markdown("""
+    st.markdown("""
     <div style="background-color:#e0f7ff;padding:20px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.2);max-width:400px;margin:auto;text-align:center;">
         <h3>登录</h3>
     """, unsafe_allow_html=True)
     username = st.text_input("用户名")
     password = st.text_input("密码", type="password")
-
     if st.button("登录"):
         success, is_admin = login_user(username, password)
         if success:
