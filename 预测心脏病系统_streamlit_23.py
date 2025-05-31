@@ -278,11 +278,9 @@ def render_login():
         .login-container input[type="text"], 
         .login-container input[type="password"] {
             width: 100%;
-            max-width: 300px; /* 控制输入框最大宽度 */
+            max-width: 100px; /* 控制输入框最大宽度 */
         }
     </style>
-    <div class="login-container">
-        <h3 style="text-align:center;">🔐 用户登录</h3>
     """, unsafe_allow_html=True)
     username = st.text_input("用户名")
     password = st.text_input("密码", type="password")
@@ -313,11 +311,9 @@ def render_register():
         .register-container input[type="text"], 
         .register-container input[type="password"] {
             width: 100%;
-            max-width: 300px;
+            max-width: 100px;
         }
     </style>
-    <div class="register-container">
-        <h3 style="text-align:center;">📝 用户注册</h3>
     """, unsafe_allow_html=True)
     new_username = st.text_input("新用户名")
     new_password = st.text_input("新密码", type="password")
