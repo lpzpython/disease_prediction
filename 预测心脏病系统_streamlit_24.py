@@ -391,8 +391,19 @@ def render_admin_page():
             if os.path.exists(pred_file):
                 with open(pred_file, "r") as f:
                     pred_result = json.load(f)
-                st.markdown(f"**📈 最近预测概率：** {pred_result['probability']}%")
-                st.markdown(f"**🕒 最后预测时间：** {pred_result['timestamp']}")
+                    if pred_result and isinstance(pred_result, list):
+                        last_pred = pred_result[-1]  # 取出最后一个预测结果（最新的一条）
+                        if isinstance(last_pred, dict):
+                            prob = last_pred.get('probability', 'N/A')
+                            time = last_pred.get('timestamp', '未知')
+                            st.markdown(f"**📈 最近预测概率：** {prob}%")
+                            st.markdown(f"**🕒 最后预测时间：** {time}")
+                        else:
+                            st.warning("预测记录格式不正确。")
+                    else:
+                        st.info("暂无预测记录。")
+                    
+                
             else:
                 st.markdown("**⚠️ 尚未有预测结果记录。**")
 
