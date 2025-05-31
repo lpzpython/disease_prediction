@@ -286,10 +286,6 @@ def render_public_announcement():
 # =============================
 # 注册登录
 def render_login():
-    st.markdown("""
-    <div style="background-color:#e0f7ff;padding:20px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.2);max-width:400px;margin:auto;text-align:center;">
-        <h3>登录</h3>
-    """, unsafe_allow_html=True)
     username = st.text_input("用户名")
     password = st.text_input("密码", type="password")
     if st.button("登录"):
@@ -310,10 +306,6 @@ def render_login():
 
 
 def render_register():
-    st.markdown("""
-    <div style="background-color:#e0f7ff;padding:20px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.2);max-width:400px;margin:auto;text-align:center;">
-        <h3>注册</h3>
-    """, unsafe_allow_html=True)
     new_username = st.text_input("新用户名")
     new_password = st.text_input("新密码", type="password")
     confirm_password = st.text_input("确认密码", type="password")
