@@ -544,7 +544,7 @@ def render_profile():
     if st.button("退出当前账号"):
         # 清除登录状态
         st.session_state['logged_in'] = False
-        st.session_state['page'] = "登录与注册"  # 回到登录页
+        st.session_state['page'] = "登录"  # 回到登录页
         st.rerun()
 
 
