@@ -268,14 +268,6 @@ def render_login():
     st.markdown("""
     <div style="background-color:#e0f7ff;padding:20px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.2);max-width:400px;margin:auto;text-align:center;">
         <h3>🔐 用户登录</h3>
-        <form>
-            <input type="text" placeholder="用户名" style="width:calc(100% - 20px);max-width:300px;margin-bottom:10px;padding:5px;">
-            <br/>
-            <input type="password" placeholder="密码" style="width:calc(100% - 20px);max-width:300px;margin-bottom:10px;padding:5px;">
-            <br/>
-            <button style="padding:10px 20px;background-color:#007BFF;color:white;border:none;border-radius:5px;cursor:pointer;">登录</button>
-        </form>
-    </div>
     """, unsafe_allow_html=True)
     username = st.text_input("用户名")
     password = st.text_input("密码", type="password")
@@ -295,18 +287,9 @@ def render_login():
 def render_register():
     st.markdown("""
     <div style="background-color:#e0f7ff;padding:20px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.2);max-width:400px;margin:auto;text-align:center;">
-        <h3>📝 用户注册</h3>
-        <form>
-            <input type="text" placeholder="新用户名" style="width:calc(100% - 20px);max-width:300px;margin-bottom:10px;padding:5px;">
-            <br/>
-            <input type="password" placeholder="新密码" style="width:calc(100% - 20px);max-width:300px;margin-bottom:10px;padding:5px;">
-            <br/>
-            <input type="password" placeholder="确认密码" style="width:calc(100% - 20px);max-width:300px;margin-bottom:10px;padding:5px;">
-            <br/>
-            <button style="padding:10px 20px;background-color:#007BFF;color:white;border:none;border-radius:5px;cursor:pointer;">注册</button>
-        </form>
-    </div>
+        <h3> 用户注册</h3>
     """, unsafe_allow_html=True)
+
     new_username = st.text_input("新用户名")
     new_password = st.text_input("新密码", type="password")
     confirm_password = st.text_input("确认密码", type="password")
