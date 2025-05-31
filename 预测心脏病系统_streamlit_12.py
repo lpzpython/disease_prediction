@@ -72,7 +72,6 @@ def login_user(username, password):
         return True, is_admin
     return False, False
 
-# 注册新用户函数（包括性别和年龄）
 def register_user(username, password, gender, age):
     ensure_users_file_exists()
     with open('users.json', 'r') as f:
@@ -84,7 +83,8 @@ def register_user(username, password, gender, age):
     users[username] = {
         "password": password,
         "gender": gender,
-        "age": age
+        "age": age,
+        "nickname": ""
     }
 
     with open('users.json', 'w') as f:
@@ -128,10 +128,135 @@ def train_model(df):
 
     return best_rf, X_test, y_test
 
+#增加公告
+import os
+import json
+from datetime import datetime
+
+# 确保公告文件存在
+def ensure_announcements_file_exists():
+    if not os.path.exists('announcements.json'):
+        with open('announcements.json', 'w') as f:
+            json.dump({}, f)
+
+# 获取所有公告
+def get_announcements():
+    ensure_announcements_file_exists()
+    try:
+        with open('announcements.json', 'r') as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        return {}
+
+# 保存公告
+def save_announcement(announcement_id, data):
+    announcements = get_announcements()
+    announcements[announcement_id] = data
+    with open('announcements.json', 'w') as f:
+        json.dump(announcements, f, indent=4)
+
+# 删除公告
+def delete_announcement(announcement_id):
+    announcements = get_announcements()
+    if announcement_id in announcements:
+        del announcements[announcement_id]
+        with open('announcements.json', 'w') as f:
+            json.dump(announcements, f, indent=4)
+
+# 生成唯一ID（基于当前时间）
+def generate_announcement_id():
+    return datetime.now().strftime("ANN_%Y%m%d%H%M%S")
+def render_admin_announcement():
+    st.title("📢 管理员公告管理")
+
+    # 加载已有公告
+    announcements = get_announcements()
+
+    # 发布新公告
+    st.subheader("📌 发布新公告")
+    title = st.text_input("公告标题")
+    content = st.text_area("公告内容")
+    if st.button("发布"):
+        if title.strip() == "" or content.strip() == "":
+            st.warning("标题或内容不能为空！")
+        else:
+            announcement_id = generate_announcement_id()
+            data = {
+                "title": title,
+                "content": content,
+                "author": st.session_state.get("current_user"),
+                "timestamp": str(datetime.now())
+            }
+            save_announcement(announcement_id, data)
+            st.success("公告已发布！")
+            st.experimental_rerun()
+
+    # 搜索公告
+    search_term = st.text_input("🔍 输入关键词搜索公告标题")
+    filtered = {k: v for k, v in announcements.items() if search_term.lower() in v['title'].lower()}
+
+    # 展示公告列表
+    st.markdown("---")
+    st.subheader("🗂 当前公告列表")
+    if not filtered:
+        st.info("暂无公告。")
+    else:
+        for aid, adata in reversed(filtered.items()):
+            with st.expander(f"📢 {adata['title']} （{adata['timestamp']}）"):
+                st.markdown(f"**内容：**\n{adata['content']}")
+                st.markdown(f"*发布人：{adata['author']}*")
+                if st.button("🗑 删除", key=f"del_{aid}"):
+                    delete_announcement(aid)
+                    st.success("公告已删除！")
+                    st.experimental_rerun()
+                if st.button("✏️ 编辑", key=f"edit_{aid}"):
+                    st.session_state.editing_announcement = aid
+                    st.experimental_rerun()
+
+    # 编辑公告功能
+    if 'editing_announcement' in st.session_state:
+        aid = st.session_state.editing_announcement
+        adata = announcements[aid]
+        st.markdown("---")
+        st.subheader("✍️ 编辑公告")
+        new_title = st.text_input("编辑标题", value=adata['title'])
+        new_content = st.text_area("编辑内容", value=adata['content'])
+        if st.button("更新公告"):
+            updated_data = {
+                "title": new_title,
+                "content": new_content,
+                "author": adata['author'],
+                "timestamp": adata['timestamp']
+            }
+            save_announcement(aid, updated_data)
+            del st.session_state.editing_announcement
+            st.success("公告已更新！")
+            st.experimental_rerun()
+        if st.button("取消编辑"):
+            del st.session_state.editing_announcement
+            st.experimental_rerun()
+def render_public_announcement():
+    st.title("📢 公告查看区")
+
+    announcements = get_announcements()
+    search_term = st.text_input("🔍 输入关键词搜索公告标题")
+    filtered = {k: v for k, v in announcements.items() if search_term.lower() in v['title'].lower()}
+
+    if not filtered:
+        st.info("暂无公告。")
+    else:
+        for aid, adata in reversed(filtered.items()):
+            with st.expander(f"📢 {adata['title']} （{adata['timestamp']}）"):
+                st.markdown(f"**内容：**\n{adata['content']}")
+                st.markdown(f"*发布人：{adata['author']}*")
+
 # =============================
 def render_login_register():
     st.title("🔐 登录 / 注册")
-    option = st.selectbox("请选择操作", ["登录", "注册"])
+    #option = st.selectbox("请选择操作", ["登录", "注册"])
+    # 如果没有明确选择登录或注册，默认显示登录页
+    default_option = st.session_state.get('page', '登录')
+    option = st.selectbox("请选择操作", ["登录", "注册"], index=0 if default_option == "登录" else 1)
 
     if option == "登录":
         st.subheader("请登录")
@@ -147,24 +272,45 @@ def render_login_register():
             else:
                 st.error("用户名或密码错误")
 
+
     elif option == "注册":
+
         st.subheader("创建新账户")
+
         new_username = st.text_input("新用户名")
+
         new_password = st.text_input("新密码", type="password")
+
         confirm_password = st.text_input("确认密码", type="password")
+
         gender = st.selectbox("性别", ["男", "女"])
+
         age = st.number_input("年龄", min_value=0, max_value=120, value=18)
 
         if st.button("注册"):
+
             if new_password != confirm_password:
+
                 st.error("两次输入的密码不一致！")
+
             elif len(new_password) < 6:
+
                 st.warning("密码至少需要6位字符！")
+
             else:
+
                 if register_user(new_username, new_password, gender, age):
-                    st.success("注册成功！请返回登录页登录。")
-                    st.session_state['logged_in'] = False  # 👈 就在这里增加这行
+
+                    st.success("注册成功，请登录。")
+
+                    # 设置回到登录页并刷新
+
+                    st.session_state['page'] = "登录与注册"
+
+                    st.experimental_rerun()  # 刷新页面以展示登录表单
+
                 else:
+
                     st.warning("用户名已存在，请换一个。")
 
 #新增留言管理功能
@@ -275,7 +421,14 @@ def render_profile():
     st.markdown(f"**用户名：** {username}")
     st.markdown(f"**性别：** {user_info['gender']}")
     st.markdown(f"**年龄：** {user_info['age']}")
-
+    st.markdown("---")
+    st.subheader("✒️ 修改昵称")
+    new_nickname = st.text_input("昵称", value=user_info.get("nickname", ""))
+    if st.button("保存昵称"):
+        users[username]["nickname"] = new_nickname
+        with open('users.json', 'w') as f:
+            json.dump(users, f)
+        st.success("昵称已更新！")
     st.markdown("---")
     st.subheader("🔐 更改密码")
 
@@ -357,7 +510,8 @@ def sidebar_navigation():
         "登录与注册": "🔐 登录 / 注册",
         "数据分析与可视化": "📊 数据分析与可视化",
         "心脏病预测": "🫀 心脏病概率预测",
-        "个人信息": "🧾 个人资料"
+        "个人信息": "🧾 个人资料",
+        "公告发布区": "📢 公告查看区"
     }
     is_admin = st.session_state.get("is_admin", False)  # 安全默认值
     if not is_admin:
@@ -365,6 +519,7 @@ def sidebar_navigation():
     else:
         # 管理员专属页面
         pages["管理员面板"] = "🔒 管理员面板"
+        pages["管理员公告管理"] = "📢 管理员公告管理"
     # 渲染按钮
     for page_key, label in pages.items():
         if st.sidebar.button(label, key=f"nav_{page_key}", use_container_width=True):
@@ -587,6 +742,13 @@ def main():
             render_prediction(model)
         elif page == "个人信息":
             render_profile()
+        elif page == "管理员公告管理":
+            if st.session_state.get("is_admin", False):
+                render_admin_announcement()
+            else:
+                st.warning("您没有权限访问此页面。")
+        elif page == "公告发布区":
+            render_public_announcement()
         elif page == "管理员面板":
             if st.session_state.get("is_admin", False):
                 render_admin_page()
