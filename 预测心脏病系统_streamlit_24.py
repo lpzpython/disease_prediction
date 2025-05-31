@@ -298,7 +298,7 @@ def render_login():
             st.rerun()
         else:
             st.error("用户名或密码错误")
-if st.button("还没有账号？立即注册"):  # 这个隐藏按钮用于触发逻辑
+if st.button("还没有账号？立即注册",use_container_width=True):  # 这个隐藏按钮用于触发逻辑
     st.session_state['page'] = "注册"
     st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
