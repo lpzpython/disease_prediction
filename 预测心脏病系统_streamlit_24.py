@@ -299,9 +299,29 @@ def render_login():
         else:
             st.error("用户名或密码错误")
         # 添加跳转注册页的按钮
-    if st.button("还没有账号？立即注册", use_container_width=True):
-        st.session_state['page'] = "注册"
-        st.rerun()
+st.markdown("""
+    <style>
+        .custom-register-button {
+            background-color: #d6eaff; /* 浅蓝色 */
+            color: black;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            width: 100%;
+            border: none;
+            cursor: pointer;
+        }
+        .custom-register-button:hover {
+            background-color: #a3d0ff;
+        }
+    </style>
+    <button class="custom-register-button">还没有账号？立即注册</button>
+""", unsafe_allow_html=True)
+
+if st.button("还没有账号？立即注册"):  # 这个隐藏按钮用于触发逻辑
+    st.session_state['page'] = "注册"
+    st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
 
