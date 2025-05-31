@@ -95,7 +95,7 @@ def register_user(username, password, gender, age):
 # 加载数据
 @st.cache_data
 def load_and_clean_data():
-    df = pd.read_excel('heart_0531.xlsx')
+    df = pd.read_excel('heart_0513.xlsx')
     rows_with_nan = df[df.isnull().any(axis=1)]
     df_cleaned = df.dropna()
 
