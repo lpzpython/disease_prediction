@@ -268,6 +268,10 @@ def render_public_announcement():
 # =============================
 #注册登录
 def render_login():
+   st.markdown("""
+    <div style="background-color:#e0f7ff;padding:20px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.2);max-width:400px;margin:auto;text-align:center;">
+        <h3>登录</h3>
+    """, unsafe_allow_html=True)
     username = st.text_input("用户名")
     password = st.text_input("密码", type="password")
 
@@ -284,6 +288,10 @@ def render_login():
     st.markdown("</div>", unsafe_allow_html=True)
 
 def render_register():
+   st.markdown("""
+    <div style="background-color:#e0f7ff;padding:20px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.2);max-width:400px;margin:auto;text-align:center;">
+        <h3>注册</h3>
+    """, unsafe_allow_html=True)
     new_username = st.text_input("新用户名")
     new_password = st.text_input("新密码", type="password")
     confirm_password = st.text_input("确认密码", type="password")
@@ -778,8 +786,7 @@ def main():
     initialize_files()
     df = load_and_clean_data()
     model, X_test, y_test = train_model(df)
-
-    # 初始化 session_state 状态
+   # 初始化 session_state 状态
     if 'logged_in' not in st.session_state:
         st.session_state['logged_in'] = False
 
@@ -791,14 +798,10 @@ def main():
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             st.markdown("<h2 style='text-align:center;'>登录与注册</h2>", unsafe_allow_html=True)
-            login_or_register = st.tabs(["登录", "注册"])
-
-            with login_or_register[0]:
+            if st.session_state['page'] == "登录":
                 render_login()
-
-            with login_or_register[1]:
+            elif st.session_state['page'] == "注册":
                 render_register()
-
     # 已登录，进入主功能页面
     else:
         page = sidebar_navigation()
