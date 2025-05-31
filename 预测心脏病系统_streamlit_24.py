@@ -832,7 +832,7 @@ def main():
         st.session_state['logged_in'] = False
 
     if 'page' not in st.session_state:
-        st.session_state['page'] = "登录"  # 默认进入登录页
+        st.session_state['page'] = "登录与注册"  # 默认进入登录页
 
     # 如果未登录，只允许访问登录/注册页
     if not st.session_state.get('logged_in', False):
