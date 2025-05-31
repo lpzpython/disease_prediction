@@ -779,21 +779,21 @@ def main():
     df = load_and_clean_data()
     model, X_test, y_test = train_model(df)
 
-    # 初始化 session_state 状态
+   # 初始化 session_state 状态
     if 'logged_in' not in st.session_state:
         st.session_state['logged_in'] = False
 
     if 'page' not in st.session_state:
         st.session_state['page'] = "登录"  # 默认进入登录页
 
-    # 如果未登录，只允许访问登录/注册页
+    # 如果未登录，允许访问登录/注册页
     if not st.session_state.get('logged_in', False):
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             if st.session_state['page'] == "登录":
-                render_login()
+                render_login()  # 当状态为登录时，仅渲染登录页面
             elif st.session_state['page'] == "注册":
-                render_register()
+                render_register()  # 当状态为注册时，仅渲染注册页面
 
     # 已登录，进入主功能页面
     else:
