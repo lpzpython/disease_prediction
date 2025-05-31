@@ -285,7 +285,8 @@ def render_register():
             st.warning("昵称不能为空！")
         else:
             if register_user(new_username, new_password, gender, age,nickname):
-                st.success("注册成功，请登录。")
+                st.success("注册成功，正在跳转登录页面...")
+                time.sleep(1.5)
                 st.session_state['page'] = "登录"
                 st.rerun()
             else:
