@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
+import base64
 import os
 import json
 from sklearn.model_selection import train_test_split, GridSearchCV
