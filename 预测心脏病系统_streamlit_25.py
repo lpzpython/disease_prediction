@@ -12,16 +12,16 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, roc_curve, auc
 
-# 页面基础配置
-st.set_page_config(page_title="心脏健康评估系统", layout="wide")
-sns.set_style("ticks")  # 调整默认样式
+# Page configuration
+st.set_page_config(page_title="Disease Prediction System", layout="wide")
+sns.set_style("whitegrid")  # Adjust default style
 
 
 # ------------------------------
-# 样式与背景设置
+# Style and background settings
 # ------------------------------
 def set_bg_image(img_path):
-    """设置页面背景图片"""
+    """Set page background image"""
     with open(img_path, "rb") as img_file:
         img_b64 = base64.b64encode(img_file.read()).decode()
     
@@ -46,7 +46,7 @@ def set_bg_image(img_path):
         }}
         .section-title {{
             color: #34495e;
-            border-left: 4px solid #3498db;
+            border-left: 4px solid #e74c3c;
             padding-left: 10px;
             margin-top: 1.5rem;
         }}
@@ -57,7 +57,7 @@ def set_bg_image(img_path):
 
 
 def set_login_bg(img_path):
-    """设置登录页面背景"""
+    """Set login page background"""
     with open(img_path, "rb") as img_file:
         img_b64 = base64.b64encode(img_file.read()).decode()
     
@@ -82,17 +82,17 @@ def set_login_bg(img_path):
 
 
 # ------------------------------
-# 数据文件管理
+# Data file management
 # ------------------------------
 def init_file(file_path, default_content):
-    """初始化文件（若不存在则创建）"""
+    """Initialize file if it doesn't exist"""
     if not os.path.exists(file_path):
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(default_content, f, ensure_ascii=False)
 
 
 def load_json(file_path):
-    """读取JSON文件内容"""
+    """Read content from JSON file"""
     init_file(file_path, {})
     with open(file_path, 'r', encoding='utf-8') as f:
         try:
@@ -102,28 +102,28 @@ def load_json(file_path):
 
 
 def save_json(file_path, data):
-    """保存数据到JSON文件"""
+    """Save data to JSON file"""
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
 # ------------------------------
-# 用户认证相关
+# User authentication
 # ------------------------------
 def verify_user(username, password):
-    """验证用户登录信息"""
+    """Verify user login credentials"""
     users = load_json('users.json')
     user_info = users.get(username)
     if user_info and user_info['password'] == password:
-        return True, username == '1neo9'  # (登录成功, 是否管理员)
+        return True, username == '1neo9'  # (login success, is admin)
     return False, False
 
 
 def add_new_user(username, password, gender, age, nickname):
-    """注册新用户"""
+    """Register a new user"""
     users = load_json('users.json')
     if username in users:
-        return False  # 用户名已存在
+        return False  # Username already exists
     users[username] = {
         'password': password,
         'gender': gender,
@@ -136,16 +136,16 @@ def add_new_user(username, password, gender, age, nickname):
 
 
 # ------------------------------
-# 数据处理与模型训练
+# Data processing and model training
 # ------------------------------
 @st.cache_data
 def load_health_data():
-    """加载并清洗心脏健康数据"""
-    # 加载数据并处理缺失值
-    raw_data = pd.read_excel('heart_0531.xlsx')
+    """Load and clean health data"""
+    # Load data and handle missing values
+    raw_data = pd.read_excel('health_data.xlsx')
     clean_data = raw_data.dropna()
     
-    # 移除异常值
+    # Remove outliers
     def drop_outliers(df):
         q1 = df.quantile(0.25)
         q3 = df.quantile(0.75)
@@ -157,18 +157,18 @@ def load_health_data():
 
 @st.cache_resource
 def build_model(health_data):
-    """训练随机森林分类模型"""
-    # 特征与目标变量
+    """Train random forest classification model"""
+    # Features and target variable
     features = ['age', 'sex', 'trestbps', 'chol', 'fbs', 'thalach', 'exang', 'thal']
     X = health_data[features]
     y = health_data['target']
     
-    # 拆分数据集
+    # Split dataset
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.4, random_state=42
     )
     
-    # 网格搜索优化模型
+    # Grid search for optimal model
     param_grid = {
         'n_estimators': [50, 100],
         'max_depth': [None, 10, 20],
@@ -187,15 +187,15 @@ def build_model(health_data):
 
 
 # ------------------------------
-# 公告管理功能
+# Announcement management
 # ------------------------------
 def get_all_announcements():
-    """获取所有公告"""
+    """Get all announcements"""
     return load_json('announcements.json')
 
 
 def add_announcement(title, content, author):
-    """添加新公告"""
+    """Add new announcement"""
     announcements = get_all_announcements()
     ann_id = f"ANN_{datetime.now().strftime('%Y%m%d%H%M%S')}"
     announcements[ann_id] = {
@@ -209,7 +209,7 @@ def add_announcement(title, content, author):
 
 
 def update_announcement(ann_id, new_title, new_content):
-    """更新公告内容"""
+    """Update announcement content"""
     announcements = get_all_announcements()
     if ann_id in announcements:
         announcements[ann_id]['title'] = new_title
@@ -220,7 +220,7 @@ def update_announcement(ann_id, new_title, new_content):
 
 
 def remove_announcement(ann_id):
-    """删除公告"""
+    """Delete announcement"""
     announcements = get_all_announcements()
     if ann_id in announcements:
         del announcements[ann_id]
@@ -230,109 +230,98 @@ def remove_announcement(ann_id):
 
 
 # ------------------------------
-# 页面渲染 - 认证相关
+# Page rendering - Authentication
 # ------------------------------
 def show_login_page():
-    """显示登录页面"""
+    """Display login page"""
     with st.container():
         st.markdown('<div class="login-card">', unsafe_allow_html=True)
-        st.subheader("用户登录")
+        st.subheader("User Login")
         
-        username = st.text_input("请输入用户名")
-        password = st.text_input("请输入密码", type="password")
+        username = st.text_input("Enter username")
+        password = st.text_input("Enter password", type="password")
         
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("登录", use_container_width=True):
+            if st.button("Login", use_container_width=True):
                 success, is_admin = verify_user(username, password)
                 if success:
                     st.session_state.update({
                         'logged_in': True,
                         'current_user': username,
                         'is_admin': is_admin,
-                        'page': '数据概览与分析'
+                        'page': 'Data Analysis'
                     })
                     st.rerun()
                 else:
-                    st.error("用户名或密码不正确")
+                    st.error("Incorrect username or password")
         
         with col2:
-            if st.button("注册新账号", use_container_width=True):
-                st.session_state['page'] = '用户注册'
+            if st.button("Create New Account", use_container_width=True):
+                st.session_state['page'] = 'User Registration'
                 st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
 
 def show_register_page():
-    """显示注册页面"""
+    """Display registration page"""
     with st.container():
         st.markdown('<div class="login-card">', unsafe_allow_html=True)
-        st.subheader("用户注册")
+        st.subheader("User Registration")
         
-        new_user = st.text_input("设置用户名")
-        new_pwd = st.text_input("设置密码（至少6位）", type="password")
-        confirm_pwd = st.text_input("确认密码", type="password")
-        gender = st.selectbox("性别", ["男", "女"])
-        age = st.number_input("年龄", min_value=0, max_value=120, value=18)
-        nickname = st.text_input("设置昵称（必填）")
+        new_user = st.text_input("Set username")
+        new_pwd = st.text_input("Set password (at least 6 characters)", type="password")
+        confirm_pwd = st.text_input("Confirm password", type="password")
+        gender = st.selectbox("Gender", ["Male", "Female"])
+        age = st.number_input("Age", min_value=0, max_value=120, value=18)
+        nickname = st.text_input("Set nickname (required)")
         
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("完成注册", use_container_width=True):
+            if st.button("Complete Registration", use_container_width=True):
                 if new_pwd != confirm_pwd:
-                    st.error("两次输入的密码不一致")
+                    st.error("Passwords do not match")
                 elif len(new_pwd) < 6:
-                    st.warning("密码长度不能少于6位")
+                    st.warning("Password must be at least 6 characters")
                 elif not nickname.strip():
-                    st.warning("昵称不能为空")
+                    st.warning("Nickname cannot be empty")
                 else:
                     if add_new_user(new_user, new_pwd, gender, age, nickname):
-                        st.success("注册成功，即将跳转到登录页")
-                        st.session_state['page'] = '用户登录'
+                        st.success("Registration successful, redirecting to login page")
+                        st.session_state['page'] = 'User Login'
                         st.rerun()
                     else:
-                        st.warning("用户名已存在，请更换")
+                        st.warning("Username already exists, please choose another")
         
         with col2:
-            if st.button("返回登录", use_container_width=True):
-                st.session_state['page'] = '用户登录'
+            if st.button("Back to Login", use_container_width=True):
+                st.session_state['page'] = 'User Login'
                 st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ------------------------------
-# 页面渲染 - 功能页面
+# Page rendering - Function pages
 # ------------------------------
 def show_dashboard(health_data, model, X_test, y_test):
-    """显示数据分析仪表盘"""
-    st.markdown('<h2 class="main-title">心脏健康数据分析</h2>', unsafe_allow_html=True)
+    """Display data analysis dashboard"""
+    st.markdown('<h2 class="main-title">Health Data Analysis</h2>', unsafe_allow_html=True)
     
-    # 数据字段说明
-    field_explain = {
-        'age': '年龄（岁）',
-        'sex': '性别（0=女，1=男）',
-        'trestbps': '静息血压（mm Hg）',
-        'chol': '血清胆固醇（mg/dl）',
-        'fbs': '空腹血糖 > 120 mg/dl（0=否，1=是）',
-        'thalach': '最大心率',
-        'exang': '运动诱发心绞痛（0=否，1=是）',
-        'thal': '地中海贫血类型（0=正常，1=固定缺陷，2=可逆缺陷）',
-        'target': '是否患病（1=是，0=否）'
-    }
-    
-    # 连续变量分布
-    st.markdown('<h3 class="section-title">1. 连续指标分布</h3>', unsafe_allow_html=True)
+    # Continuous variable distribution
+    st.markdown('<h3 class="section-title">1. Continuous Metrics Distribution</h3>', unsafe_allow_html=True)
     cont_vars = ['age', 'trestbps', 'chol', 'thalach']
     cols = st.columns(2)
     for i, var in enumerate(cont_vars):
         with cols[i % 2]:
             fig, ax = plt.subplots(figsize=(5, 3))
-            sns.histplot(health_data[var], kde=True, ax=ax, color='#3498db')
-            ax.set_title(f'{var} - {field_explain[var]}')
+            sns.histplot(health_data[var], kde=True, ax=ax, color='#e74c3c')
+            ax.set_title(f'Distribution of {var}')
+            ax.set_xlabel(var)
+            ax.set_ylabel('Frequency')
             st.pyplot(fig)
     
-    # 分类变量分布
-    st.markdown('<h3 class="section-title">2. 分类指标分布</h3>', unsafe_allow_html=True)
+    # Categorical variable distribution
+    st.markdown('<h3 class="section-title">2. Categorical Metrics Distribution</h3>', unsafe_allow_html=True)
     cat_vars = ['sex', 'fbs', 'exang', 'thal']
     cols = st.columns(2)
     for i, var in enumerate(cat_vars):
@@ -341,95 +330,96 @@ def show_dashboard(health_data, model, X_test, y_test):
             counts = health_data[var].value_counts()
             ax.pie(counts, labels=counts.index, autopct='%1.1f%%', 
                    colors=['#3498db', '#2ecc71', '#e74c3c', '#f39c12'])
-            ax.set_title(f'{var} - {field_explain[var]}')
+            ax.set_title(f'Distribution of {var}')
             st.pyplot(fig)
     
-    # 患病情况与指标关系
-    st.markdown('<h3 class="section-title">3. 患病情况与指标关系</h3>', unsafe_allow_html=True)
+    # Condition status vs metrics
+    st.markdown('<h3 class="section-title">3. Condition Status vs Metrics</h3>', unsafe_allow_html=True)
     cols = st.columns(2)
     for i, var in enumerate(cont_vars):
         with cols[i % 2]:
             fig, ax = plt.subplots(figsize=(5, 3))
             sns.boxplot(x='target', y=var, data=health_data, ax=ax, palette=['#2ecc71', '#e74c3c'])
-            ax.set_xlabel('是否患病')
-            ax.set_ylabel(f'{var} - {field_explain[var]}')
+            ax.set_xlabel('Condition Status')
+            ax.set_ylabel(var)
             st.pyplot(fig)
     
-    # 相关性分析
-    st.markdown('<h3 class="section-title">4. 指标相关性分析</h3>', unsafe_allow_html=True)
+    # Correlation analysis
+    st.markdown('<h3 class="section-title">4. Metrics Correlation Analysis</h3>', unsafe_allow_html=True)
     corr_data = health_data[cont_vars].corr()
     fig, ax = plt.subplots(figsize=(8, 6))
-    sns.heatmap(corr_data, annot=True, cmap='coolwarm', fmt='.2f', ax=ax)
+    sns.heatmap(corr_data, annot=True, cmap='viridis', fmt='.2f', ax=ax)
+    ax.set_title('Correlation Matrix')
     st.pyplot(fig)
     
-    # 模型性能
-    st.markdown('<h3 class="section-title">5. 模型性能评估</h3>', unsafe_allow_html=True)
+    # Model performance
+    st.markdown('<h3 class="section-title">5. Model Performance Evaluation</h3>', unsafe_allow_html=True)
     y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:, 1]
     
-    # 性能指标
+    # Performance metrics
     report = classification_report(y_test, y_pred, output_dict=True)
-    st.write(f"准确率: {report['accuracy']:.4f}")
-    st.write(f"患病识别率: {report['1']['recall']:.4f}")
-    st.write(f"预测精准度: {report['1']['precision']:.4f}")
+    st.write(f"Accuracy: {report['accuracy']:.4f}")
+    st.write(f"Condition Detection Rate: {report['1']['recall']:.4f}")
+    st.write(f"Prediction Precision: {report['1']['precision']:.4f}")
     
-    # 混淆矩阵
+    # Confusion matrix
     fig, ax = plt.subplots(figsize=(5, 4))
-    sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues', ax=ax)
-    ax.set_xlabel('预测结果')
-    ax.set_ylabel('实际结果')
+    sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='magma', ax=ax)
+    ax.set_xlabel('Predicted Result')
+    ax.set_ylabel('Actual Result')
     st.pyplot(fig)
     
-    # ROC曲线
+    # ROC curve
     fpr, tpr, _ = roc_curve(y_test, y_proba)
     roc_auc = auc(fpr, tpr)
     fig, ax = plt.subplots(figsize=(6, 4))
-    ax.plot(fpr, tpr, color='#e74c3c', lw=2, label=f'ROC曲线 (AUC = {roc_auc:.2f})')
+    ax.plot(fpr, tpr, color='#3498db', lw=2, label=f'ROC Curve (AUC = {roc_auc:.2f})')
     ax.plot([0, 1], [0, 1], 'k--', lw=2)
-    ax.set_xlabel('假阳性率')
-    ax.set_ylabel('真阳性率')
+    ax.set_xlabel('False Positive Rate')
+    ax.set_ylabel('True Positive Rate')
     ax.legend()
     st.pyplot(fig)
 
 
 def show_prediction(model):
-    """显示心脏病预测页面"""
-    st.markdown('<h2 class="main-title">心脏健康风险评估</h2>', unsafe_allow_html=True)
+    """Display disease prediction page"""
+    st.markdown('<h2 class="main-title">Health Risk Assessment</h2>', unsafe_allow_html=True)
     
     with st.form("pred_form"):
-        st.write("请输入以下健康指标，系统将评估心脏病风险：")
+        st.write("Please enter the following health metrics for risk assessment:")
         col1, col2 = st.columns(2)
         
-        # 输入字段
+        # Input fields
         input_vals = {}
         fields = [
-            ('age', '年龄（岁）', 50),
-            ('sex', '性别（0=女，1=男）', 0),
-            ('trestbps', '静息血压（mm Hg）', 120),
-            ('chol', '血清胆固醇（mg/dl）', 200),
-            ('fbs', '空腹血糖>120mg/dl（0=否，1=是）', 0),
-            ('thalach', '最大心率', 150),
-            ('exang', '运动诱发心绞痛（0=否，1=是）', 0),
-            ('thal', '地中海贫血类型（0=正常，1=固定，2=可逆）', 0)
+            ('age', 'Age (years)', 50),
+            ('sex', 'Gender (0=Female, 1=Male)', 0),
+            ('trestbps', 'Resting Blood Pressure (mm Hg)', 120),
+            ('chol', 'Serum Cholesterol (mg/dl)', 200),
+            ('fbs', 'Fasting Blood Sugar >120mg/dl (0=No, 1=Yes)', 0),
+            ('thalach', 'Maximum Heart Rate', 150),
+            ('exang', 'Exercise Induced Angina (0=No, 1=Yes)', 0),
+            ('thal', 'Thalassemia Type (0=Normal, 1=Fixed, 2=Reversible)', 0)
         ]
         
         for i, (key, label, default) in enumerate(fields):
             with col1 if i % 2 == 0 else col2:
                 input_vals[key] = st.number_input(label, value=default, step=1)
         
-        submit_btn = st.form_submit_button("开始评估", use_container_width=True)
+        submit_btn = st.form_submit_button("Start Assessment", use_container_width=True)
     
     if submit_btn:
-        # 生成预测结果
+        # Generate prediction result
         input_df = pd.DataFrame([input_vals])
         risk_prob = model.predict_proba(input_df)[0][1] * 100
-        st.success(f"心脏病风险评估结果：**{risk_prob:.2f}%**")
+        st.success(f"Health Risk Assessment Result: **{risk_prob:.2f}%**")
         
-        # 保存记录
+        # Save records
         username = st.session_state['current_user']
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
-        # 保存预测结果
+        # Save prediction result
         pred_file = f'{username}_risk_records.json'
         pred_records = load_json(pred_file)
         pred_records.append({
@@ -438,7 +428,7 @@ def show_prediction(model):
         })
         save_json(pred_file, pred_records)
         
-        # 保存输入数据
+        # Save input data
         input_file = f'{username}_input_data.json'
         input_records = load_json(input_file)
         input_data = input_vals.copy()
@@ -448,222 +438,222 @@ def show_prediction(model):
 
 
 def show_user_profile():
-    """显示用户个人资料页面"""
-    st.markdown('<h2 class="main-title">个人中心</h2>', unsafe_allow_html=True)
+    """Display user profile page"""
+    st.markdown('<h2 class="main-title">User Profile</h2>', unsafe_allow_html=True)
     username = st.session_state['current_user']
     users = load_json('users.json')
     user_info = users.get(username)
     
     if not user_info:
-        st.error("未找到用户信息，请重新登录")
+        st.error("User information not found, please log in again")
         return
     
-    # 基本信息
-    st.markdown('<h3 class="section-title">基本信息</h3>', unsafe_allow_html=True)
-    st.write(f"用户名: {username}")
-    st.write(f"昵称: {user_info['nickname']}")
-    st.write(f"性别: {user_info['gender']}")
-    st.write(f"年龄: {user_info['age']}")
+    # Basic information
+    st.markdown('<h3 class="section-title">Basic Information</h3>', unsafe_allow_html=True)
+    st.write(f"Username: {username}")
+    st.write(f"Nickname: {user_info['nickname']}")
+    st.write(f"Gender: {user_info['gender']}")
+    st.write(f"Age: {user_info['age']}")
     
-    # 修改昵称
-    st.markdown('<h3 class="section-title">修改昵称</h3>', unsafe_allow_html=True)
-    new_nick = st.text_input("新昵称", value=user_info['nickname'])
-    if st.button("保存昵称"):
+    # Change nickname
+    st.markdown('<h3 class="section-title">Update Nickname</h3>', unsafe_allow_html=True)
+    new_nick = st.text_input("New Nickname", value=user_info['nickname'])
+    if st.button("Save Nickname"):
         users[username]['nickname'] = new_nick
         save_json('users.json', users)
-        st.success("昵称已更新")
+        st.success("Nickname updated successfully")
     
-    # 修改密码
-    st.markdown('<h3 class="section-title">修改密码</h3>', unsafe_allow_html=True)
-    old_pwd = st.text_input("当前密码", type="password")
-    new_pwd = st.text_input("新密码", type="password")
-    confirm_pwd = st.text_input("确认新密码", type="password")
+    # Change password
+    st.markdown('<h3 class="section-title">Update Password</h3>', unsafe_allow_html=True)
+    old_pwd = st.text_input("Current Password", type="password")
+    new_pwd = st.text_input("New Password", type="password")
+    confirm_pwd = st.text_input("Confirm New Password", type="password")
     
-    if st.button("更新密码"):
+    if st.button("Update Password"):
         if old_pwd != user_info['password']:
-            st.error("当前密码不正确")
+            st.error("Current password is incorrect")
         elif new_pwd != confirm_pwd:
-            st.error("两次输入的新密码不一致")
+            st.error("New passwords do not match")
         elif not new_pwd:
-            st.error("新密码不能为空")
+            st.error("New password cannot be empty")
         else:
             users[username]['password'] = new_pwd
             save_json('users.json', users)
-            st.success("密码已更新")
+            st.success("Password updated successfully")
     
-    # 管理员留言
+    # Admin messages
     msg = load_json('messages.json').get(username, "")
     if msg:
-        st.markdown('<h3 class="section-title">管理员留言</h3>', unsafe_allow_html=True)
+        st.markdown('<h3 class="section-title">Administrator Message</h3>', unsafe_allow_html=True)
         st.info(msg)
     
-    # 历史记录
-    st.markdown('<h3 class="section-title">评估历史</h3>', unsafe_allow_html=True)
+    # History records
+    st.markdown('<h3 class="section-title">Assessment History</h3>', unsafe_allow_html=True)
     pred_file = f'{username}_risk_records.json'
     pred_records = load_json(pred_file)
     
     if not pred_records:
-        st.info("暂无评估记录")
+        st.info("No assessment records yet")
     else:
         for rec in reversed(pred_records):
-            with st.expander(f"评估时间: {rec['timestamp']} | 风险值: {rec['probability']}%"):
+            with st.expander(f"Assessment Time: {rec['timestamp']} | Risk Value: {rec['probability']}%"):
                 try:
                     input_data = load_json(f'{username}_input_data.json')
-                    # 找到对应时间的输入数据
+                    # Find corresponding input data
                     for data in reversed(input_data):
                         if data['timestamp'] == rec['timestamp']:
                             st.json({k: v for k, v in data.items() if k != 'timestamp'})
                             break
                 except:
-                    st.warning("未找到对应输入数据")
+                    st.warning("Corresponding input data not found")
     
-    # 退出登录
-    st.markdown('<h3 class="section-title">账户操作</h3>', unsafe_allow_html=True)
-    if st.button("退出登录"):
+    # Logout
+    st.markdown('<h3 class="section-title">Account Operations</h3>', unsafe_allow_html=True)
+    if st.button("Logout"):
         st.session_state['logged_in'] = False
-        st.session_state['page'] = '用户登录'
+        st.session_state['page'] = 'User Login'
         st.rerun()
 
 
 def show_announcement_management():
-    """显示管理员公告管理页面"""
-    st.markdown('<h2 class="main-title">公告管理</h2>', unsafe_allow_html=True)
+    """Display admin announcement management page"""
+    st.markdown('<h2 class="main-title">Announcement Management</h2>', unsafe_allow_html=True)
     
-    # 发布新公告
-    st.markdown('<h3 class="section-title">发布新公告</h3>', unsafe_allow_html=True)
+    # Publish new announcement
+    st.markdown('<h3 class="section-title">Publish New Announcement</h3>', unsafe_allow_html=True)
     with st.form("new_ann_form"):
-        title = st.text_input("公告标题")
-        content = st.text_area("公告内容")
-        if st.form_submit_button("发布公告"):
+        title = st.text_input("Announcement Title")
+        content = st.text_area("Announcement Content")
+        if st.form_submit_button("Publish Announcement"):
             if not title or not content:
-                st.warning("标题和内容不能为空")
+                st.warning("Title and content cannot be empty")
             else:
                 add_announcement(title, content, st.session_state['current_user'])
-                st.success("公告发布成功")
+                st.success("Announcement published successfully")
                 st.rerun()
     
-    # 搜索与筛选
-    search_key = st.text_input("搜索公告标题")
+    # Search and filter
+    search_key = st.text_input("Search Announcement Title")
     announcements = get_all_announcements()
     filtered_anns = {k: v for k, v in announcements.items() 
                     if search_key.lower() in v['title'].lower()}
     
-    # 公告列表
-    st.markdown('<h3 class="section-title">公告列表</h3>', unsafe_allow_html=True)
+    # Announcement list
+    st.markdown('<h3 class="section-title">Announcement List</h3>', unsafe_allow_html=True)
     if not filtered_anns:
-        st.info("暂无公告")
+        st.info("No announcements available")
     else:
         for ann_id, ann in reversed(filtered_anns.items()):
             with st.expander(f"{ann['title']} ({ann['timestamp']})"):
-                st.write(f"内容: {ann['content']}")
-                st.write(f"发布人: {ann['author']}")
+                st.write(f"Content: {ann['content']}")
+                st.write(f"Author: {ann['author']}")
                 
                 col1, col2 = st.columns(2)
                 with col1:
-                    if st.button("删除", key=f"del_{ann_id}"):
+                    if st.button("Delete", key=f"del_{ann_id}"):
                         remove_announcement(ann_id)
-                        st.success("公告已删除")
+                        st.success("Announcement deleted successfully")
                         st.rerun()
                 with col2:
-                    if st.button("编辑", key=f"edit_{ann_id}"):
+                    if st.button("Edit", key=f"edit_{ann_id}"):
                         st.session_state['edit_ann_id'] = ann_id
                         st.rerun()
     
-    # 编辑公告
+    # Edit announcement
     if 'edit_ann_id' in st.session_state:
         ann_id = st.session_state['edit_ann_id']
         ann = announcements.get(ann_id)
         if ann:
-            st.markdown('<h3 class="section-title">编辑公告</h3>', unsafe_allow_html=True)
-            new_title = st.text_input("公告标题", value=ann['title'])
-            new_content = st.text_area("公告内容", value=ann['content'])
+            st.markdown('<h3 class="section-title">Edit Announcement</h3>', unsafe_allow_html=True)
+            new_title = st.text_input("Announcement Title", value=ann['title'])
+            new_content = st.text_area("Announcement Content", value=ann['content'])
             
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("保存修改"):
+                if st.button("Save Changes"):
                     update_announcement(ann_id, new_title, new_content)
                     del st.session_state['edit_ann_id']
-                    st.success("公告已更新")
+                    st.success("Announcement updated successfully")
                     st.rerun()
             with col2:
-                if st.button("取消编辑"):
+                if st.button("Cancel Editing"):
                     del st.session_state['edit_ann_id']
                     st.rerun()
 
 
 def show_public_announcements():
-    """显示公共公告页面"""
-    st.markdown('<h2 class="main-title">公告通知</h2>', unsafe_allow_html=True)
+    """Display public announcements page"""
+    st.markdown('<h2 class="main-title">Announcements & Notices</h2>', unsafe_allow_html=True)
     
-    search_key = st.text_input("搜索公告")
+    search_key = st.text_input("Search Announcements")
     announcements = get_all_announcements()
     filtered_anns = {k: v for k, v in announcements.items() 
                     if search_key.lower() in v['title'].lower()}
     
     if not filtered_anns:
-        st.info("暂无公告")
+        st.info("No announcements available")
     else:
         for ann in reversed(filtered_anns.values()):
             with st.expander(f"{ann['title']} ({ann['timestamp']})"):
-                st.write(f"内容: {ann['content']}")
-                st.write(f"发布人: {ann['author']}")
+                st.write(f"Content: {ann['content']}")
+                st.write(f"Author: {ann['author']}")
 
 
 def show_admin_panel():
-    """显示管理员面板"""
-    st.markdown('<h2 class="main-title">管理员中心</h2>', unsafe_allow_html=True)
+    """Display admin panel"""
+    st.markdown('<h2 class="main-title">Administrator Center</h2>', unsafe_allow_html=True)
     users = load_json('users.json')
     
     for username in users:
-        if username == '1neo9':  # 跳过管理员自身
+        if username == '1neo9':  # Skip admin account
             continue
         
         user_info = users[username]
-        with st.expander(f"用户: {username}"):
-            st.write(f"性别: {user_info['gender']}")
-            st.write(f"年龄: {user_info['age']}")
-            st.write(f"昵称: {user_info['nickname']}")
+        with st.expander(f"User: {username}"):
+            st.write(f"Gender: {user_info['gender']}")
+            st.write(f"Age: {user_info['age']}")
+            st.write(f"Nickname: {user_info['nickname']}")
             
-            # 输入数据
+            # Input data
             input_file = f'{username}_input_data.json'
             if os.path.exists(input_file):
-                st.write("用户输入数据:")
+                st.write("User Input Data:")
                 st.json(load_json(input_file))
             else:
-                st.write("暂无输入数据")
+                st.write("No input data available")
             
-            # 预测记录
+            # Prediction records
             pred_file = f'{username}_risk_records.json'
             if os.path.exists(pred_file):
                 pred_records = load_json(pred_file)
                 if pred_records:
                     last_pred = pred_records[-1]
-                    st.write(f"最近评估: {last_pred['probability']}%")
-                    st.write(f"评估时间: {last_pred['timestamp']}")
+                    st.write(f"Latest Assessment: {last_pred['probability']}%")
+                    st.write(f"Assessment Time: {last_pred['timestamp']}")
                 else:
-                    st.write("暂无评估记录")
+                    st.write("No assessment records")
             else:
-                st.write("暂无评估记录")
+                st.write("No assessment records")
             
-            # 留言功能
+            # Message function
             msg = load_json('messages.json').get(username, "")
-            new_msg = st.text_input("给用户的留言", value=msg, key=f"msg_{username}")
-            if st.button("保存留言", key=f"save_msg_{username}"):
+            new_msg = st.text_input("Message to User", value=msg, key=f"msg_{username}")
+            if st.button("Save Message", key=f"save_msg_{username}"):
                 messages = load_json('messages.json')
                 messages[username] = new_msg
                 save_json('messages.json', messages)
-                st.success("留言已保存")
+                st.success("Message saved successfully")
 
 
 # ------------------------------
-# 导航菜单
+# Navigation menu
 # ------------------------------
 def render_sidebar_nav():
-    """渲染侧边栏导航"""
+    """Render sidebar navigation"""
     st.sidebar.markdown("""
     <style>
     .nav-header {
-        background-color: #3498db;
+        background-color: #e74c3c;
         color: white;
         padding: 10px;
         border-radius: 5px;
@@ -686,84 +676,85 @@ def render_sidebar_nav():
     </style>
     """, unsafe_allow_html=True)
     
-    st.sidebar.markdown('<div class="nav-header">功能导航</div>', unsafe_allow_html=True)
+    st.sidebar.markdown('<div class="nav-header">Navigation</div>', unsafe_allow_html=True)
     
-    # 导航菜单配置
+    # Navigation menu configuration - Personal placed last
     menu = {
-        '数据概览与分析': '📊 数据概览与分析',
-        '个人中心': '👤 个人中心',
-        '公告通知': '📢 公告通知'
+        'Data Analysis': '📊 Data Analysis',
+        'Health Risk Assessment': '📈 Health Risk Assessment',
+        'Announcements & Notices': '📢 Announcements & Notices'
     }
     
-    # 管理员菜单
+    # Admin menu
     if st.session_state.get('is_admin', False):
-        menu['管理员中心'] = '🔐 管理员中心'
-        menu['公告管理'] = '📝 公告管理'
-    else:
-        menu['健康风险评估'] = '❤️ 健康风险评估'
+        menu['Administrator Center'] = '🔐 Administrator Center'
+        menu['Announcement Management'] = '📝 Announcement Management'
     
-    # 渲染导航按钮
+    # Add personal center as last item
+    menu['User Profile'] = '👤 User Profile'
+    
+    # Render navigation buttons
     for page_key, label in menu.items():
         if st.sidebar.button(label, key=page_key, use_container_width=True):
             st.session_state['page'] = page_key
     
-    # 默认页面
+    # Default page
     if 'page' not in st.session_state:
-        st.session_state['page'] = '数据概览与分析'
+        st.session_state['page'] = 'Data Analysis'
     
     return st.session_state['page']
 
 
 # ------------------------------
-# 主函数
+# Main function
 # ------------------------------
 def main():
-    # 初始化必要文件
+    # Initialize necessary files
     init_file('users.json', {})
     init_file('announcements.json', {})
     init_file('messages.json', {})
     
-    # 加载数据与模型
+    # Load data and model
     health_data = load_health_data()
     model, X_test, y_test = build_model(health_data)
     
-    # 初始化会话状态
+    # Initialize session state
     if 'logged_in' not in st.session_state:
         st.session_state['logged_in'] = False
     if 'page' not in st.session_state:
-        st.session_state['page'] = '用户登录'
+        st.session_state['page'] = 'User Login'
     
-    # 根据登录状态设置背景
+    # Set background based on login status
     if st.session_state['logged_in']:
         set_bg_image('background.jpg')
     else:
         set_login_bg('login_bg.png')
     
-    # 未登录状态 - 显示认证页面
+    # Not logged in - show authentication pages
     if not st.session_state['logged_in']:
-        st.markdown('<h1 class="main-title">心脏健康评估系统</h1>', unsafe_allow_html=True)
+        st.markdown('<h1 class="main-title">Health Risk Assessment System</h1>', unsafe_allow_html=True)
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            if st.session_state['page'] == '用户登录':
+            if st.session_state['page'] == 'User Login':
                 show_login_page()
-            elif st.session_state['page'] == '用户注册':
+            elif st.session_state['page'] == 'User Registration':
                 show_register_page()
     
-    # 已登录状态 - 显示功能页面
+    # Logged in - show function pages
     else:
         current_page = render_sidebar_nav()
         
-        if current_page == '数据概览与分析':
+        if current_page == 'Data Analysis':
             show_dashboard(health_data, model, X_test, y_test)
-        elif current_page == '健康风险评估' and not st.session_state['is_admin']:
+        elif current_page == 'Health Risk Assessment' and not st.session_state['is_admin']:
             show_prediction(model)
-        elif current_page == '个人中心':
+        elif current_page == 'User Profile':
             show_user_profile()
-        elif current_page == '公告管理' and st.session_state['is_admin']:
+        elif current_page == 'Announcement Management' and st.session_state['is_admin']:
             show_announcement_management()
-        elif current_page == '公告通知':
+        elif current_page == 'Announcements & Notices':
             show_public_announcements()
-        elif current_page == '管理员中心' and st.session_state['is_admin']:
+        elif current_page == 'Administrator Center' and st.session_state['is_admin']:
             show_admin_panel()
 
 
