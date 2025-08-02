@@ -155,8 +155,9 @@ def add_new_user(username, password, gender, age, nickname):
 @st.cache_data
 def load_health_data():
     """Load and clean health data, with fallback to sample data if file not found"""
+    # 读取指定的Excel文件：heart_0531.xlsx
     if not os.path.exists('heart_0531.xlsx'):
-        st.warning("Health data file not found. Using sample data for demonstration.")
+        st.warning("Health data file 'heart_0531.xlsx' not found. Using sample data for demonstration.")
         
         # Create sample data
         np.random.seed(42)
@@ -174,6 +175,7 @@ def load_health_data():
         return pd.DataFrame(data)
     
     try:
+        # 读取指定的Excel文件
         raw_data = pd.read_excel('heart_0531.xlsx')
         clean_data = raw_data.dropna()
         
@@ -244,46 +246,6 @@ def build_model(health_data):
     grid_search.fit(X_train, y_train)
     
     return grid_search.best_estimator_, X_test, y_test
-
-
-# ------------------------------
-# Announcement management
-# ------------------------------
-def get_all_announcements():
-    """Get all announcements"""
-    return load_json('announcements.json')
-
-
-def add_announcement(title, content, author):
-    """Add new announcement"""
-    announcements = get_all_announcements()
-    ann_id = f"ANN_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-    announcements[ann_id] = {
-        'title': title,
-        'content': content,
-        'author': author,
-        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    }
-    return save_json('announcements.json', announcements)
-
-
-def update_announcement(ann_id, new_title, new_content):
-    """Update announcement content"""
-    announcements = get_all_announcements()
-    if ann_id in announcements:
-        announcements[ann_id]['title'] = new_title
-        announcements[ann_id]['content'] = new_content
-        return save_json('announcements.json', announcements)
-    return False
-
-
-def remove_announcement(ann_id):
-    """Delete announcement"""
-    announcements = get_all_announcements()
-    if ann_id in announcements:
-        del announcements[ann_id]
-        return save_json('announcements.json', announcements)
-    return False
 
 
 # ------------------------------
@@ -408,7 +370,7 @@ def show_register_page():
 # Page rendering - Function pages
 # ------------------------------
 def show_dashboard(health_data, model, X_test, y_test):
-    """Display data analysis dashboard"""
+    """Display data analysis dashboard - 已删除饼图"""
     st.markdown('<h2 class="main-title">Health Data Analysis</h2>', unsafe_allow_html=True)
     
     # Continuous variable distribution
@@ -425,23 +387,9 @@ def show_dashboard(health_data, model, X_test, y_test):
             ax.set_ylabel('Frequency')
             st.pyplot(fig)
     
-    # Categorical variable distribution
-    st.markdown('<h3 class="section-title">2. Categorical Metrics Distribution</h3>', unsafe_allow_html=True)
-    cat_vars = ['sex', 'fbs', 'exang', 'thal']
-    cat_vars = [v for v in cat_vars if v in health_data.columns]
-    cols = st.columns(2)
-    for i, var in enumerate(cat_vars):
-        with cols[i % 2]:
-            fig, ax = plt.subplots(figsize=(5, 3))
-            counts = health_data[var].value_counts()
-            ax.pie(counts, labels=counts.index, autopct='%1.1f%%', 
-                   colors=['#3498db', '#2ecc71', '#e74c3c', '#f39c12'])
-            ax.set_title(f'Distribution of {var}')
-            st.pyplot(fig)
-    
     # Condition status vs metrics
     if 'target' in health_data.columns:
-        st.markdown('<h3 class="section-title">3. Condition Status vs Metrics</h3>', unsafe_allow_html=True)
+        st.markdown('<h3 class="section-title">2. Condition Status vs Metrics</h3>', unsafe_allow_html=True)
         cols = st.columns(2)
         for i, var in enumerate(cont_vars):
             with cols[i % 2]:
@@ -452,7 +400,7 @@ def show_dashboard(health_data, model, X_test, y_test):
                 st.pyplot(fig)
     
     # Correlation analysis
-    st.markdown('<h3 class="section-title">4. Metrics Correlation Analysis</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 class="section-title">3. Metrics Correlation Analysis</h3>', unsafe_allow_html=True)
     if cont_vars:
         corr_data = health_data[cont_vars].corr()
         fig, ax = plt.subplots(figsize=(8, 6))
@@ -463,7 +411,7 @@ def show_dashboard(health_data, model, X_test, y_test):
         st.info("No continuous variables available for correlation analysis")
     
     # Model performance
-    st.markdown('<h3 class="section-title">5. Model Performance Evaluation</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 class="section-title">4. Model Performance Evaluation</h3>', unsafe_allow_html=True)
     y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:, 1]
     
@@ -496,7 +444,7 @@ def show_dashboard(health_data, model, X_test, y_test):
 
 
 def show_prediction(model):
-    """Display disease prediction page with fixed save functionality"""
+    """Display disease prediction page"""
     st.markdown('<h2 class="main-title">Health Risk Assessment</h2>', unsafe_allow_html=True)
     
     with st.form("pred_form"):
@@ -529,7 +477,7 @@ def show_prediction(model):
             risk_prob = model.predict_proba(input_df)[0][1] * 100
             st.success(f"Health Risk Assessment Result: **{risk_prob:.2f}%**")
             
-            # Save records using the new dedicated function
+            # Save records
             username = st.session_state['current_user']
             save_success = save_prediction_record(
                 username, 
@@ -545,7 +493,7 @@ def show_prediction(model):
 
 
 def show_user_profile():
-    """Display user profile page"""
+    """Display user profile page - 已删除更新昵称功能"""
     st.markdown('<h2 class="main-title">User Profile</h2>', unsafe_allow_html=True)
     username = st.session_state['current_user']
     users = load_json('users.json')
@@ -562,17 +510,7 @@ def show_user_profile():
     st.write(f"Gender: {user_info['gender']}")
     st.write(f"Age: {user_info['age']}")
     
-    # Change nickname
-    st.markdown('<h3 class="section-title">Update Nickname</h3>', unsafe_allow_html=True)
-    new_nick = st.text_input("New Nickname", value=user_info['nickname'])
-    if st.button("Save Nickname"):
-        users[username]['nickname'] = new_nick
-        if save_json('users.json', users):
-            st.success("Nickname updated successfully")
-        else:
-            st.error("Failed to update nickname")
-    
-    # Change password
+    # Change password (保留密码修改功能)
     st.markdown('<h3 class="section-title">Update Password</h3>', unsafe_allow_html=True)
     old_pwd = st.text_input("Current Password", type="password")
     new_pwd = st.text_input("New Password", type="password")
@@ -625,97 +563,6 @@ def show_user_profile():
         st.rerun()
 
 
-def show_announcement_management():
-    """Display admin announcement management page"""
-    st.markdown('<h2 class="main-title">Announcement Management</h2>', unsafe_allow_html=True)
-    
-    # Publish new announcement
-    st.markdown('<h3 class="section-title">Publish New Announcement</h3>', unsafe_allow_html=True)
-    with st.form("new_ann_form"):
-        title = st.text_input("Announcement Title")
-        content = st.text_area("Announcement Content")
-        if st.form_submit_button("Publish Announcement"):
-            if not title or not content:
-                st.warning("Title and content cannot be empty")
-            else:
-                if add_announcement(title, content, st.session_state['current_user']):
-                    st.success("Announcement published successfully")
-                    st.rerun()
-                else:
-                    st.error("Failed to publish announcement")
-    
-    # Search and filter
-    search_key = st.text_input("Search Announcement Title")
-    announcements = get_all_announcements()
-    filtered_anns = {k: v for k, v in announcements.items() 
-                    if search_key.lower() in v['title'].lower()}
-    
-    # Announcement list
-    st.markdown('<h3 class="section-title">Announcement List</h3>', unsafe_allow_html=True)
-    if not filtered_anns:
-        st.info("No announcements available")
-    else:
-        for ann_id, ann in reversed(filtered_anns.items()):
-            with st.expander(f"{ann['title']} ({ann['timestamp']})"):
-                st.write(f"Content: {ann['content']}")
-                st.write(f"Author: {ann['author']}")
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    if st.button("Delete", key=f"del_{ann_id}"):
-                        if remove_announcement(ann_id):
-                            st.success("Announcement deleted successfully")
-                            st.rerun()
-                        else:
-                            st.error("Failed to delete announcement")
-                with col2:
-                    if st.button("Edit", key=f"edit_{ann_id}"):
-                        st.session_state['edit_ann_id'] = ann_id
-                        st.rerun()
-    
-    # Edit announcement
-    if 'edit_ann_id' in st.session_state:
-        ann_id = st.session_state['edit_ann_id']
-        announcements = get_all_announcements()
-        ann = announcements.get(ann_id)
-        if ann:
-            st.markdown('<h3 class="section-title">Edit Announcement</h3>', unsafe_allow_html=True)
-            new_title = st.text_input("Announcement Title", value=ann['title'])
-            new_content = st.text_area("Announcement Content", value=ann['content'])
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("Save Changes"):
-                    if update_announcement(ann_id, new_title, new_content):
-                        del st.session_state['edit_ann_id']
-                        st.success("Announcement updated successfully")
-                        st.rerun()
-                    else:
-                        st.error("Failed to update announcement")
-            with col2:
-                if st.button("Cancel Editing"):
-                    del st.session_state['edit_ann_id']
-                    st.rerun()
-
-
-def show_public_announcements():
-    """Display public announcements page"""
-    st.markdown('<h2 class="main-title">Announcements & Notices</h2>', unsafe_allow_html=True)
-    
-    search_key = st.text_input("Search Announcements")
-    announcements = get_all_announcements()
-    filtered_anns = {k: v for k, v in announcements.items() 
-                    if search_key.lower() in v['title'].lower()}
-    
-    if not filtered_anns:
-        st.info("No announcements available")
-    else:
-        for ann in reversed(filtered_anns.values()):
-            with st.expander(f"{ann['title']} ({ann['timestamp']})"):
-                st.write(f"Content: {ann['content']}")
-                st.write(f"Author: {ann['author']}")
-
-
 def show_admin_panel():
     """Display admin panel"""
     st.markdown('<h2 class="main-title">Administrator Center</h2>', unsafe_allow_html=True)
@@ -761,7 +608,7 @@ def show_admin_panel():
 
 
 # ------------------------------
-# Navigation menu
+# Navigation menu - 已删除公告通知相关菜单
 # ------------------------------
 def render_sidebar_nav():
     """Render sidebar navigation"""
@@ -793,17 +640,15 @@ def render_sidebar_nav():
     
     st.sidebar.markdown('<div class="nav-header">Navigation</div>', unsafe_allow_html=True)
     
-    # Navigation menu configuration - Personal placed last
+    # Navigation menu configuration - 已删除公告通知相关菜单项
     menu = {
         'Data Analysis': '📊 Data Analysis',
-        'Health Risk Assessment': '📈 Health Risk Assessment',
-        'Announcements & Notices': '📢 Announcements & Notices'
+        'Health Risk Assessment': '📈 Health Risk Assessment'
     }
     
     # Admin menu
     if st.session_state.get('is_admin', False):
         menu['Administrator Center'] = '🔐 Administrator Center'
-        menu['Announcement Management'] = '📝 Announcement Management'
     
     # Add personal center as last item
     menu['User Profile'] = '👤 User Profile'
@@ -826,7 +671,6 @@ def render_sidebar_nav():
 def main():
     # Initialize necessary files and directories
     init_file('users.json', {})
-    init_file('announcements.json', {})
     init_file('messages.json', {})
     
     # Create user records directory if it doesn't exist
@@ -873,10 +717,6 @@ def main():
             show_prediction(model)
         elif current_page == 'User Profile':
             show_user_profile()
-        elif current_page == 'Announcement Management' and st.session_state['is_admin']:
-            show_announcement_management()
-        elif current_page == 'Announcements & Notices':
-            show_public_announcements()
         elif current_page == 'Administrator Center' and st.session_state['is_admin']:
             show_admin_panel()
 
