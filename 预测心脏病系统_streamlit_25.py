@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import joblib
 import base64
 import os
 import json
@@ -14,7 +13,7 @@ from sklearn.metrics import classification_report, confusion_matrix, roc_curve, 
 
 # Page configuration
 st.set_page_config(page_title="Disease Prediction System", layout="wide")
-sns.set_style("whitegrid")  # Adjust default style
+sns.set_style("whitegrid")
 
 
 # ------------------------------
@@ -22,6 +21,10 @@ sns.set_style("whitegrid")  # Adjust default style
 # ------------------------------
 def set_bg_image(img_path):
     """Set page background image"""
+    if not os.path.exists(img_path):
+        st.warning(f"Background image {img_path} not found. Using default background.")
+        return
+    
     with open(img_path, "rb") as img_file:
         img_b64 = base64.b64encode(img_file.read()).decode()
     
@@ -58,6 +61,10 @@ def set_bg_image(img_path):
 
 def set_login_bg(img_path):
     """Set login page background"""
+    if not os.path.exists(img_path):
+        st.warning(f"Login background image {img_path} not found. Using default background.")
+        return
+    
     with open(img_path, "rb") as img_file:
         img_b64 = base64.b64encode(img_file.read()).decode()
     
@@ -91,20 +98,28 @@ def init_file(file_path, default_content):
             json.dump(default_content, f, ensure_ascii=False)
 
 
-def load_json(file_path):
-    """Read content from JSON file"""
-    init_file(file_path, {})
-    with open(file_path, 'r', encoding='utf-8') as f:
-        try:
+def load_json(file_path, default=None):
+    """Read content from JSON file with safe default"""
+    if default is None:
+        default = {}
+    init_file(file_path, default)
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
-        except json.JSONDecodeError:
-            return {}
+    except (json.JSONDecodeError, Exception) as e:
+        st.warning(f"Error reading {file_path}: {str(e)}. Using default data.")
+        return default
 
 
 def save_json(file_path, data):
-    """Save data to JSON file"""
-    with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+    """Save data to JSON file with error handling"""
+    try:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+        return True
+    except Exception as e:
+        st.error(f"Error saving to {file_path}: {str(e)}")
+        return False
 
 
 # ------------------------------
@@ -131,8 +146,7 @@ def add_new_user(username, password, gender, age, nickname):
         'nickname': nickname,
         'is_admin': False
     }
-    save_json('users.json', users)
-    return True
+    return save_json('users.json', users)
 
 
 # ------------------------------
@@ -140,19 +154,53 @@ def add_new_user(username, password, gender, age, nickname):
 # ------------------------------
 @st.cache_data
 def load_health_data():
-    """Load and clean health data"""
-    # Load data and handle missing values
-    raw_data = pd.read_excel('heart_0531.xlsx')
-    clean_data = raw_data.dropna()
+    """Load and clean health data, with fallback to sample data if file not found"""
+    if not os.path.exists('heart_0531.xlsx'):
+        st.warning("Health data file not found. Using sample data for demonstration.")
+        
+        # Create sample data
+        np.random.seed(42)
+        data = {
+            'age': np.random.randint(30, 80, 300),
+            'sex': np.random.randint(0, 2, 300),
+            'trestbps': np.random.randint(90, 160, 300),
+            'chol': np.random.randint(120, 300, 300),
+            'fbs': np.random.randint(0, 2, 300),
+            'thalach': np.random.randint(100, 200, 300),
+            'exang': np.random.randint(0, 2, 300),
+            'thal': np.random.randint(0, 3, 300),
+            'target': np.random.randint(0, 2, 300)
+        }
+        return pd.DataFrame(data)
     
-    # Remove outliers
-    def drop_outliers(df):
-        q1 = df.quantile(0.25)
-        q3 = df.quantile(0.75)
-        iqr = q3 - q1
-        return df[~((df < (q1 - 1.5 * iqr)) | (df > (q3 + 1.5 * iqr))).any(axis=1)]
-    
-    return drop_outliers(clean_data)
+    try:
+        raw_data = pd.read_excel('health_data.xlsx')
+        clean_data = raw_data.dropna()
+        
+        # Remove outliers
+        def drop_outliers(df):
+            q1 = df.quantile(0.25)
+            q3 = df.quantile(0.75)
+            iqr = q3 - q1
+            return df[~((df < (q1 - 1.5 * iqr)) | (df > (q3 + 1.5 * iqr))).any(axis=1)]
+        
+        return drop_outliers(clean_data)
+    except Exception as e:
+        st.error(f"Error loading data: {str(e)}")
+        # Create fallback sample data
+        np.random.seed(42)
+        data = {
+            'age': np.random.randint(30, 80, 300),
+            'sex': np.random.randint(0, 2, 300),
+            'trestbps': np.random.randint(90, 160, 300),
+            'chol': np.random.randint(120, 300, 300),
+            'fbs': np.random.randint(0, 2, 300),
+            'thalach': np.random.randint(100, 200, 300),
+            'exang': np.random.randint(0, 2, 300),
+            'thal': np.random.randint(0, 3, 300),
+            'target': np.random.randint(0, 2, 300)
+        }
+        return pd.DataFrame(data)
 
 
 @st.cache_resource
@@ -160,6 +208,18 @@ def build_model(health_data):
     """Train random forest classification model"""
     # Features and target variable
     features = ['age', 'sex', 'trestbps', 'chol', 'fbs', 'thalach', 'exang', 'thal']
+    
+    # Check if all required features exist
+    missing_features = [f for f in features if f not in health_data.columns]
+    if missing_features:
+        st.warning(f"Missing features in data: {', '.join(missing_features)}. Using available features.")
+        features = [f for f in features if f in health_data.columns]
+    
+    # Ensure target exists
+    if 'target' not in health_data.columns:
+        st.warning("Target column not found. Creating dummy target for demonstration.")
+        health_data['target'] = np.random.randint(0, 2, len(health_data))
+    
     X = health_data[features]
     y = health_data['target']
     
@@ -204,8 +264,7 @@ def add_announcement(title, content, author):
         'author': author,
         'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     }
-    save_json('announcements.json', announcements)
-    return ann_id
+    return save_json('announcements.json', announcements)
 
 
 def update_announcement(ann_id, new_title, new_content):
@@ -214,8 +273,7 @@ def update_announcement(ann_id, new_title, new_content):
     if ann_id in announcements:
         announcements[ann_id]['title'] = new_title
         announcements[ann_id]['content'] = new_content
-        save_json('announcements.json', announcements)
-        return True
+        return save_json('announcements.json', announcements)
     return False
 
 
@@ -224,9 +282,55 @@ def remove_announcement(ann_id):
     announcements = get_all_announcements()
     if ann_id in announcements:
         del announcements[ann_id]
-        save_json('announcements.json', announcements)
-        return True
+        return save_json('announcements.json', announcements)
     return False
+
+
+# ------------------------------
+# Prediction history management
+# ------------------------------
+def save_prediction_record(username, probability, input_data):
+    """Save prediction record with proper initialization"""
+    # Ensure directories exist
+    if not os.path.exists('user_records'):
+        os.makedirs('user_records')
+    
+    # Save prediction result with proper initialization
+    pred_file = f'user_records/{username}_risk_records.json'
+    pred_records = load_json(pred_file, default=[])  # Ensure default is empty list
+    
+    # Add new record
+    new_record = {
+        'probability': probability,
+        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
+    pred_records.append(new_record)
+    
+    # Save input data
+    input_file = f'user_records/{username}_input_data.json'
+    input_records = load_json(input_file, default=[])  # Ensure default is empty list
+    
+    input_data_with_time = input_data.copy()
+    input_data_with_time['timestamp'] = new_record['timestamp']
+    input_records.append(input_data_with_time)
+    
+    # Save both files
+    pred_success = save_json(pred_file, pred_records)
+    input_success = save_json(input_file, input_records)
+    
+    return pred_success and input_success
+
+
+def get_prediction_history(username):
+    """Get prediction history with proper error handling"""
+    pred_file = f'user_records/{username}_risk_records.json'
+    return load_json(pred_file, default=[])
+
+
+def get_input_history(username):
+    """Get input history with proper error handling"""
+    input_file = f'user_records/{username}_input_data.json'
+    return load_json(input_file, default=[])
 
 
 # ------------------------------
@@ -310,6 +414,7 @@ def show_dashboard(health_data, model, X_test, y_test):
     # Continuous variable distribution
     st.markdown('<h3 class="section-title">1. Continuous Metrics Distribution</h3>', unsafe_allow_html=True)
     cont_vars = ['age', 'trestbps', 'chol', 'thalach']
+    cont_vars = [v for v in cont_vars if v in health_data.columns]
     cols = st.columns(2)
     for i, var in enumerate(cont_vars):
         with cols[i % 2]:
@@ -323,6 +428,7 @@ def show_dashboard(health_data, model, X_test, y_test):
     # Categorical variable distribution
     st.markdown('<h3 class="section-title">2. Categorical Metrics Distribution</h3>', unsafe_allow_html=True)
     cat_vars = ['sex', 'fbs', 'exang', 'thal']
+    cat_vars = [v for v in cat_vars if v in health_data.columns]
     cols = st.columns(2)
     for i, var in enumerate(cat_vars):
         with cols[i % 2]:
@@ -334,23 +440,27 @@ def show_dashboard(health_data, model, X_test, y_test):
             st.pyplot(fig)
     
     # Condition status vs metrics
-    st.markdown('<h3 class="section-title">3. Condition Status vs Metrics</h3>', unsafe_allow_html=True)
-    cols = st.columns(2)
-    for i, var in enumerate(cont_vars):
-        with cols[i % 2]:
-            fig, ax = plt.subplots(figsize=(5, 3))
-            sns.boxplot(x='target', y=var, data=health_data, ax=ax, palette=['#2ecc71', '#e74c3c'])
-            ax.set_xlabel('Condition Status')
-            ax.set_ylabel(var)
-            st.pyplot(fig)
+    if 'target' in health_data.columns:
+        st.markdown('<h3 class="section-title">3. Condition Status vs Metrics</h3>', unsafe_allow_html=True)
+        cols = st.columns(2)
+        for i, var in enumerate(cont_vars):
+            with cols[i % 2]:
+                fig, ax = plt.subplots(figsize=(5, 3))
+                sns.boxplot(x='target', y=var, data=health_data, ax=ax, palette=['#2ecc71', '#e74c3c'])
+                ax.set_xlabel('Condition Status')
+                ax.set_ylabel(var)
+                st.pyplot(fig)
     
     # Correlation analysis
     st.markdown('<h3 class="section-title">4. Metrics Correlation Analysis</h3>', unsafe_allow_html=True)
-    corr_data = health_data[cont_vars].corr()
-    fig, ax = plt.subplots(figsize=(8, 6))
-    sns.heatmap(corr_data, annot=True, cmap='viridis', fmt='.2f', ax=ax)
-    ax.set_title('Correlation Matrix')
-    st.pyplot(fig)
+    if cont_vars:
+        corr_data = health_data[cont_vars].corr()
+        fig, ax = plt.subplots(figsize=(8, 6))
+        sns.heatmap(corr_data, annot=True, cmap='viridis', fmt='.2f', ax=ax)
+        ax.set_title('Correlation Matrix')
+        st.pyplot(fig)
+    else:
+        st.info("No continuous variables available for correlation analysis")
     
     # Model performance
     st.markdown('<h3 class="section-title">5. Model Performance Evaluation</h3>', unsafe_allow_html=True)
@@ -360,8 +470,11 @@ def show_dashboard(health_data, model, X_test, y_test):
     # Performance metrics
     report = classification_report(y_test, y_pred, output_dict=True)
     st.write(f"Accuracy: {report['accuracy']:.4f}")
-    st.write(f"Condition Detection Rate: {report['1']['recall']:.4f}")
-    st.write(f"Prediction Precision: {report['1']['precision']:.4f}")
+    if '1' in report:
+        st.write(f"Condition Detection Rate: {report['1']['recall']:.4f}")
+        st.write(f"Prediction Precision: {report['1']['precision']:.4f}")
+    else:
+        st.write("Insufficient data for complete performance metrics")
     
     # Confusion matrix
     fig, ax = plt.subplots(figsize=(5, 4))
@@ -383,7 +496,7 @@ def show_dashboard(health_data, model, X_test, y_test):
 
 
 def show_prediction(model):
-    """Display disease prediction page"""
+    """Display disease prediction page with fixed save functionality"""
     st.markdown('<h2 class="main-title">Health Risk Assessment</h2>', unsafe_allow_html=True)
     
     with st.form("pred_form"):
@@ -410,31 +523,25 @@ def show_prediction(model):
         submit_btn = st.form_submit_button("Start Assessment", use_container_width=True)
     
     if submit_btn:
-        # Generate prediction result
-        input_df = pd.DataFrame([input_vals])
-        risk_prob = model.predict_proba(input_df)[0][1] * 100
-        st.success(f"Health Risk Assessment Result: **{risk_prob:.2f}%**")
-        
-        # Save records
-        username = st.session_state['current_user']
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Save prediction result
-        pred_file = f'{username}_risk_records.json'
-        pred_records = load_json(pred_file)
-        pred_records.append({
-            'probability': f'{risk_prob:.2f}',
-            'timestamp': timestamp
-        })
-        save_json(pred_file, pred_records)
-        
-        # Save input data
-        input_file = f'{username}_input_data.json'
-        input_records = load_json(input_file)
-        input_data = input_vals.copy()
-        input_data['timestamp'] = timestamp
-        input_records.append(input_data)
-        save_json(input_file, input_records)
+        try:
+            # Generate prediction result
+            input_df = pd.DataFrame([input_vals])
+            risk_prob = model.predict_proba(input_df)[0][1] * 100
+            st.success(f"Health Risk Assessment Result: **{risk_prob:.2f}%**")
+            
+            # Save records using the new dedicated function
+            username = st.session_state['current_user']
+            save_success = save_prediction_record(
+                username, 
+                f'{risk_prob:.2f}', 
+                input_vals
+            )
+            
+            if not save_success:
+                st.warning("Could not save assessment history. Functionality is not affected.")
+                
+        except Exception as e:
+            st.error(f"An error occurred during assessment: {str(e)}")
 
 
 def show_user_profile():
@@ -460,8 +567,10 @@ def show_user_profile():
     new_nick = st.text_input("New Nickname", value=user_info['nickname'])
     if st.button("Save Nickname"):
         users[username]['nickname'] = new_nick
-        save_json('users.json', users)
-        st.success("Nickname updated successfully")
+        if save_json('users.json', users):
+            st.success("Nickname updated successfully")
+        else:
+            st.error("Failed to update nickname")
     
     # Change password
     st.markdown('<h3 class="section-title">Update Password</h3>', unsafe_allow_html=True)
@@ -478,34 +587,35 @@ def show_user_profile():
             st.error("New password cannot be empty")
         else:
             users[username]['password'] = new_pwd
-            save_json('users.json', users)
-            st.success("Password updated successfully")
+            if save_json('users.json', users):
+                st.success("Password updated successfully")
+            else:
+                st.error("Failed to update password")
     
     # Admin messages
-    msg = load_json('messages.json').get(username, "")
+    msg = load_json('messages.json', default={}).get(username, "")
     if msg:
         st.markdown('<h3 class="section-title">Administrator Message</h3>', unsafe_allow_html=True)
         st.info(msg)
     
     # History records
     st.markdown('<h3 class="section-title">Assessment History</h3>', unsafe_allow_html=True)
-    pred_file = f'{username}_risk_records.json'
-    pred_records = load_json(pred_file)
+    pred_records = get_prediction_history(username)
     
     if not pred_records:
         st.info("No assessment records yet")
     else:
+        input_records = get_input_history(username)
         for rec in reversed(pred_records):
             with st.expander(f"Assessment Time: {rec['timestamp']} | Risk Value: {rec['probability']}%"):
                 try:
-                    input_data = load_json(f'{username}_input_data.json')
                     # Find corresponding input data
-                    for data in reversed(input_data):
-                        if data['timestamp'] == rec['timestamp']:
+                    for data in reversed(input_records):
+                        if data.get('timestamp') == rec['timestamp']:
                             st.json({k: v for k, v in data.items() if k != 'timestamp'})
                             break
-                except:
-                    st.warning("Corresponding input data not found")
+                except Exception as e:
+                    st.warning(f"Error loading input data: {str(e)}")
     
     # Logout
     st.markdown('<h3 class="section-title">Account Operations</h3>', unsafe_allow_html=True)
@@ -528,9 +638,11 @@ def show_announcement_management():
             if not title or not content:
                 st.warning("Title and content cannot be empty")
             else:
-                add_announcement(title, content, st.session_state['current_user'])
-                st.success("Announcement published successfully")
-                st.rerun()
+                if add_announcement(title, content, st.session_state['current_user']):
+                    st.success("Announcement published successfully")
+                    st.rerun()
+                else:
+                    st.error("Failed to publish announcement")
     
     # Search and filter
     search_key = st.text_input("Search Announcement Title")
@@ -551,9 +663,11 @@ def show_announcement_management():
                 col1, col2 = st.columns(2)
                 with col1:
                     if st.button("Delete", key=f"del_{ann_id}"):
-                        remove_announcement(ann_id)
-                        st.success("Announcement deleted successfully")
-                        st.rerun()
+                        if remove_announcement(ann_id):
+                            st.success("Announcement deleted successfully")
+                            st.rerun()
+                        else:
+                            st.error("Failed to delete announcement")
                 with col2:
                     if st.button("Edit", key=f"edit_{ann_id}"):
                         st.session_state['edit_ann_id'] = ann_id
@@ -562,6 +676,7 @@ def show_announcement_management():
     # Edit announcement
     if 'edit_ann_id' in st.session_state:
         ann_id = st.session_state['edit_ann_id']
+        announcements = get_all_announcements()
         ann = announcements.get(ann_id)
         if ann:
             st.markdown('<h3 class="section-title">Edit Announcement</h3>', unsafe_allow_html=True)
@@ -571,10 +686,12 @@ def show_announcement_management():
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("Save Changes"):
-                    update_announcement(ann_id, new_title, new_content)
-                    del st.session_state['edit_ann_id']
-                    st.success("Announcement updated successfully")
-                    st.rerun()
+                    if update_announcement(ann_id, new_title, new_content):
+                        del st.session_state['edit_ann_id']
+                        st.success("Announcement updated successfully")
+                        st.rerun()
+                    else:
+                        st.error("Failed to update announcement")
             with col2:
                 if st.button("Cancel Editing"):
                     del st.session_state['edit_ann_id']
@@ -615,34 +732,32 @@ def show_admin_panel():
             st.write(f"Nickname: {user_info['nickname']}")
             
             # Input data
-            input_file = f'{username}_input_data.json'
-            if os.path.exists(input_file):
+            input_records = get_input_history(username)
+            if input_records:
                 st.write("User Input Data:")
-                st.json(load_json(input_file))
+                st.json(input_records)
             else:
                 st.write("No input data available")
             
             # Prediction records
-            pred_file = f'{username}_risk_records.json'
-            if os.path.exists(pred_file):
-                pred_records = load_json(pred_file)
-                if pred_records:
-                    last_pred = pred_records[-1]
-                    st.write(f"Latest Assessment: {last_pred['probability']}%")
-                    st.write(f"Assessment Time: {last_pred['timestamp']}")
-                else:
-                    st.write("No assessment records")
+            pred_records = get_prediction_history(username)
+            if pred_records:
+                last_pred = pred_records[-1]
+                st.write(f"Latest Assessment: {last_pred['probability']}%")
+                st.write(f"Assessment Time: {last_pred['timestamp']}")
             else:
                 st.write("No assessment records")
             
             # Message function
-            msg = load_json('messages.json').get(username, "")
+            messages = load_json('messages.json', default={})
+            msg = messages.get(username, "")
             new_msg = st.text_input("Message to User", value=msg, key=f"msg_{username}")
             if st.button("Save Message", key=f"save_msg_{username}"):
-                messages = load_json('messages.json')
                 messages[username] = new_msg
-                save_json('messages.json', messages)
-                st.success("Message saved successfully")
+                if save_json('messages.json', messages):
+                    st.success("Message saved successfully")
+                else:
+                    st.error("Failed to save message")
 
 
 # ------------------------------
@@ -709,14 +824,22 @@ def render_sidebar_nav():
 # Main function
 # ------------------------------
 def main():
-    # Initialize necessary files
+    # Initialize necessary files and directories
     init_file('users.json', {})
     init_file('announcements.json', {})
     init_file('messages.json', {})
     
-    # Load data and model
-    health_data = load_health_data()
-    model, X_test, y_test = build_model(health_data)
+    # Create user records directory if it doesn't exist
+    if not os.path.exists('user_records'):
+        os.makedirs('user_records')
+    
+    try:
+        # Load data and model
+        health_data = load_health_data()
+        model, X_test, y_test = build_model(health_data)
+    except Exception as e:
+        st.error(f"Error initializing application: {str(e)}")
+        return
     
     # Initialize session state
     if 'logged_in' not in st.session_state:
@@ -760,3 +883,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
