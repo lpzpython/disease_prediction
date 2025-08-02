@@ -174,7 +174,7 @@ def load_health_data():
         return pd.DataFrame(data)
     
     try:
-        raw_data = pd.read_excel('health_data.xlsx')
+        raw_data = pd.read_excel('heart_0531.xlsx')
         clean_data = raw_data.dropna()
         
         # Remove outliers
