@@ -831,7 +831,7 @@ def main():
     if st.session_state.get('logged_in', False):
         set_background_image('background.jpg')  # 已登录后的页面用这个
     else:
-        set_background_image1('login_bg.jpg')  # 登录/注册页面用这个
+        set_background_image1('login_bg.png')  # 登录/注册页面用这个
     initialize_files()
     df = load_and_clean_data()
     model, X_test, y_test = train_model(df)
